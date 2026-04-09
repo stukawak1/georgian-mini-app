@@ -11,7 +11,7 @@ Setup:
 import urllib.request, urllib.error, json, os, sys, time
 
 API_KEY  = sys.argv[1] if len(sys.argv) > 1 else os.environ.get('ELEVENLABS_API_KEY', '')
-VOICE_ID = 'XB0fDUnXU5powFXDhCwa'   # "Charlotte" — multilingual, clear female voice
+VOICE_ID = 'Xb7hH8MSUJpSbSDYk0k2'   # "Alice" — clear educator, works with multilingual_v2
 MODEL    = 'eleven_multilingual_v2'
 OUT      = os.path.join(os.path.dirname(__file__), 'audio')
 
