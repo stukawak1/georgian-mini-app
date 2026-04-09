@@ -180,6 +180,20 @@
 <!-- TOAST -->
 <div class="toast" id="toast">Скопировано!</div>
 
+<!-- AUDIO BETA MODAL -->
+<div class="modal-overlay" id="audio-modal" onclick="closeAudioModal(event)">
+  <div class="modal">
+    <div class="modal-icon">🎙️</div>
+    <div class="modal-title">Озвучка в бета-версии</div>
+    <div class="modal-text">
+      Произношение сгенерировано нейросетью и может быть <strong>не на 100% точным</strong> для некоторых сложных грузинских звуков.<br><br>
+      Всегда сверяйтесь с <span class="modal-hint">транскрипцией</span> под словом — она надёжнее.
+    </div>
+    <button class="modal-btn" onclick="confirmAudioModal()">Понятно, слушать!</button>
+    <div class="modal-skip" onclick="closeAudioModal()">Не показывать снова</div>
+  </div>
+</div>
+
 <script src="data.js"></script>
 <script src="app.js"></script>
 </body>

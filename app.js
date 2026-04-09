@@ -6,6 +6,16 @@ const TTS = {
   _activeBtn: null,
 
   play(key, btn = null) {
+    if (!localStorage.getItem('gla_audio_warned')) {
+      this._pendingKey = key;
+      this._pendingBtn = btn;
+      document.getElementById('audio-modal').classList.add('show');
+      return;
+    }
+    this._doPlay(key, btn);
+  },
+
+  _doPlay(key, btn) {
     // Stop previous
     if (this._current) {
       this._current.pause();
@@ -38,6 +48,24 @@ const TTS = {
     });
   },
 };
+
+function confirmAudioModal() {
+  localStorage.setItem('gla_audio_warned', '1');
+  document.getElementById('audio-modal').classList.remove('show');
+  if (TTS._pendingKey) {
+    TTS._doPlay(TTS._pendingKey, TTS._pendingBtn);
+    TTS._pendingKey = null;
+    TTS._pendingBtn = null;
+  }
+}
+
+function closeAudioModal(e) {
+  if (e && e.target !== document.getElementById('audio-modal')) return;
+  localStorage.setItem('gla_audio_warned', '1');
+  document.getElementById('audio-modal').classList.remove('show');
+  TTS._pendingKey = null;
+  TTS._pendingBtn = null;
+}
 
 const PHRASE_PREFIX = {
   greeting: 'g', polite: 'p', food: 'f',
