@@ -1,0 +1,428 @@
+/* Georgian Language Learning App — Main Logic */
+
+// ── STATE ──
+const State = {
+  currentSection: 'alphabet',
+  alphabet: {
+    mode: 'browse',   // 'browse' | 'quiz'
+    currentIdx: 0,
+    learned: new Set(JSON.parse(localStorage.getItem('gla_learned') || '[]')),
+  },
+  quiz: {
+    score: 0,
+    wrong: 0,
+    streak: 0,
+    total: 0,
+    answered: false,
+  },
+  flashcards: {
+    deck: [],
+    idx: 0,
+    filter: 'all',
+    seen: new Set(),
+  },
+  phrases: {},
+};
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', () => {
+  initNav();
+  renderAlphabet();
+  renderPhrases();
+  renderFlashcards();
+  renderTips();
+  showSection('alphabet');
+  updateProgress();
+
+  // Telegram Web App init
+  if (window.Telegram?.WebApp) {
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+    document.documentElement.style.setProperty('--tg-header', tg.colorScheme === 'light' ? '#fff' : '#1A1D27');
+  }
+});
+
+// ── NAVIGATION ──
+function initNav() {
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => showSection(btn.dataset.section));
+  });
+}
+
+function showSection(name) {
+  State.currentSection = name;
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`sec-${name}`).classList.add('active');
+  document.querySelector(`.nav-btn[data-section="${name}"]`).classList.add('active');
+}
+
+// ── PROGRESS ──
+function updateProgress() {
+  const total = ALPHABET.length;
+  const learned = State.alphabet.learned.size;
+  const pct = Math.round((learned / total) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = `${learned}/${total} букв`;
+}
+
+function saveProgress() {
+  localStorage.setItem('gla_learned', JSON.stringify([...State.alphabet.learned]));
+  updateProgress();
+}
+
+// ── ALPHABET SECTION ──
+function renderAlphabet() {
+  renderAlphabetGrid();
+  renderLetterDetail(State.alphabet.currentIdx);
+  setupAlphabetNav();
+  setupModeToggle();
+}
+
+function renderAlphabetGrid() {
+  const grid = document.getElementById('alphabet-grid');
+  grid.innerHTML = '';
+  ALPHABET.forEach((item, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'letter-btn' +
+      (State.alphabet.learned.has(i) ? ' learned' : '') +
+      (i === State.alphabet.currentIdx ? ' current' : '');
+    btn.innerHTML = `<span class="letter-ka">${item.letter}</span><span class="letter-rom">${item.roman}</span>`;
+    btn.addEventListener('click', () => {
+      State.alphabet.currentIdx = i;
+      renderAlphabetGrid();
+      renderLetterDetail(i);
+    });
+    grid.appendChild(btn);
+  });
+}
+
+function renderLetterDetail(idx) {
+  const item = ALPHABET[idx];
+  const el = document.getElementById('letter-detail');
+  const isLearned = State.alphabet.learned.has(idx);
+  el.innerHTML = `
+    <div class="letter-big">${item.letter}</div>
+    <div class="letter-detail-rom">${item.roman}</div>
+    <div class="letter-detail-ru">${item.ru}</div>
+    <div class="letter-detail-hint">💡 ${item.hint}</div>
+    <div class="letter-detail-example">✦ ${item.example}</div>
+    <div style="margin-top:8px;">
+      <button class="btn ${isLearned ? 'btn-secondary' : 'btn-success'}" style="padding:8px 20px;flex:0 0 auto;"
+        onclick="toggleLearned(${idx})">
+        ${isLearned ? '✓ Выучена' : '+ Выучил!'}
+      </button>
+    </div>
+  `;
+}
+
+function toggleLearned(idx) {
+  if (State.alphabet.learned.has(idx)) {
+    State.alphabet.learned.delete(idx);
+  } else {
+    State.alphabet.learned.add(idx);
+    showToast('Буква запомнена! 🎉');
+  }
+  saveProgress();
+  renderAlphabetGrid();
+  renderLetterDetail(idx);
+}
+
+function setupAlphabetNav() {
+  document.getElementById('btn-prev').addEventListener('click', () => {
+    State.alphabet.currentIdx = (State.alphabet.currentIdx - 1 + ALPHABET.length) % ALPHABET.length;
+    renderAlphabetGrid();
+    renderLetterDetail(State.alphabet.currentIdx);
+  });
+  document.getElementById('btn-next').addEventListener('click', () => {
+    State.alphabet.currentIdx = (State.alphabet.currentIdx + 1) % ALPHABET.length;
+    renderAlphabetGrid();
+    renderLetterDetail(State.alphabet.currentIdx);
+  });
+}
+
+function setupModeToggle() {
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const mode = btn.dataset.mode;
+      document.getElementById('browse-panel').style.display = mode === 'browse' ? 'block' : 'none';
+      document.getElementById('quiz-panel').style.display = mode === 'quiz' ? 'block' : 'none';
+      if (mode === 'quiz') startQuiz();
+    });
+  });
+}
+
+// ── QUIZ ──
+function startQuiz() {
+  State.quiz = { score: 0, wrong: 0, streak: 0, total: 0, answered: false };
+  renderQuizStats();
+  nextQuestion();
+}
+
+function nextQuestion() {
+  State.quiz.answered = false;
+  const qWrap = document.getElementById('quiz-wrap');
+
+  // Pick random letter
+  const correctIdx = Math.floor(Math.random() * ALPHABET.length);
+  const correct = ALPHABET[correctIdx];
+
+  // Generate 3 wrong options
+  const wrongOptions = [];
+  const usedIndices = new Set([correctIdx]);
+  while (wrongOptions.length < 3) {
+    const r = Math.floor(Math.random() * ALPHABET.length);
+    if (!usedIndices.has(r)) {
+      usedIndices.add(r);
+      wrongOptions.push(ALPHABET[r]);
+    }
+  }
+
+  const allOptions = [...wrongOptions, correct].sort(() => Math.random() - 0.5);
+
+  qWrap.innerHTML = `
+    <div class="quiz-question">
+      <div class="quiz-letter">${correct.letter}</div>
+      <div class="quiz-prompt">Как читается эта буква?</div>
+    </div>
+    <div class="quiz-options">
+      ${allOptions.map(opt => `
+        <button class="quiz-option" data-rom="${opt.roman}" data-correct="${opt.roman === correct.roman}">
+          ${opt.roman}<br><small style="font-size:10px;color:var(--text3);font-weight:400">${opt.ru}</small>
+        </button>
+      `).join('')}
+    </div>
+  `;
+
+  qWrap.querySelectorAll('.quiz-option').forEach(btn => {
+    btn.addEventListener('click', () => handleQuizAnswer(btn, correct));
+  });
+}
+
+function handleQuizAnswer(btn, correct) {
+  if (State.quiz.answered) return;
+  State.quiz.answered = true;
+  State.quiz.total++;
+
+  const isCorrect = btn.dataset.correct === 'true';
+
+  if (isCorrect) {
+    btn.classList.add('correct');
+    State.quiz.score++;
+    State.quiz.streak++;
+    if (!State.alphabet.learned.has(ALPHABET.indexOf(correct))) {
+      // Optionally auto-mark as learned after quiz
+    }
+    if (State.quiz.streak > 0 && State.quiz.streak % 5 === 0) {
+      showToast(`🔥 ${State.quiz.streak} подряд! Огонь!`);
+    }
+  } else {
+    btn.classList.add('wrong');
+    State.quiz.wrong++;
+    State.quiz.streak = 0;
+    // Show correct answer
+    document.querySelectorAll('.quiz-option').forEach(b => {
+      if (b.dataset.correct === 'true') b.classList.add('correct');
+    });
+  }
+
+  renderQuizStats();
+
+  setTimeout(() => {
+    if (State.quiz.answered) nextQuestion();
+  }, 1200);
+}
+
+function renderQuizStats() {
+  const el = document.getElementById('quiz-stats');
+  const acc = State.quiz.total > 0
+    ? Math.round((State.quiz.score / State.quiz.total) * 100)
+    : 0;
+  el.innerHTML = `
+    <div class="quiz-stat">
+      <div class="quiz-stat-num green">${State.quiz.score}</div>
+      <div class="quiz-stat-label">Верно</div>
+    </div>
+    <div class="quiz-stat">
+      <div class="quiz-stat-num red">${State.quiz.wrong}</div>
+      <div class="quiz-stat-label">Ошибки</div>
+    </div>
+    <div class="quiz-stat">
+      <div class="quiz-stat-num blue">${State.quiz.streak}</div>
+      <div class="quiz-stat-label">Серия</div>
+    </div>
+    <div class="quiz-stat">
+      <div class="quiz-stat-num" style="color:var(--gold)">${acc}%</div>
+      <div class="quiz-stat-label">Точность</div>
+    </div>
+  `;
+}
+
+// ── PHRASES ──
+function renderPhrases() {
+  const container = document.getElementById('phrases-container');
+  container.innerHTML = '';
+
+  Object.entries(PHRASES).forEach(([key, category]) => {
+    const div = document.createElement('div');
+    div.className = 'phrase-category';
+    div.innerHTML = `
+      <div class="phrase-category-header">
+        <span class="phrase-category-icon">${category.icon}</span>
+        <span class="phrase-category-title">${category.title}</span>
+        <span class="phrase-category-count">${category.items.length} фраз</span>
+        <span class="phrase-chevron">▼</span>
+      </div>
+      <div class="phrase-list">
+        ${category.items.map(item => `
+          <div class="phrase-item" onclick="copyPhrase(this, '${escHtml(item.ka)}')">
+            <div class="phrase-ka">${item.ka}</div>
+            <div class="phrase-rom">${item.rom}</div>
+            <div class="phrase-ru">${item.ru}</div>
+            ${item.note ? `<div class="phrase-note">ℹ️ ${item.note}</div>` : ''}
+            <span class="phrase-copy">📋</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    div.querySelector('.phrase-category-header').addEventListener('click', () => {
+      div.classList.toggle('open');
+    });
+    container.appendChild(div);
+  });
+
+  // Open first category by default
+  container.querySelector('.phrase-category').classList.add('open');
+}
+
+function copyPhrase(el, text) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => {
+      el.classList.add('copied');
+      showToast('Скопировано в буфер 📋');
+      setTimeout(() => el.classList.remove('copied'), 2000);
+    });
+  }
+}
+
+// ── FLASHCARDS ──
+function renderFlashcards() {
+  buildDeck('all');
+  renderFilterBtns();
+  renderFC();
+
+  document.getElementById('fc-flip').addEventListener('click', flipCard);
+  document.getElementById('fc-next').addEventListener('click', nextCard);
+  document.getElementById('fc-prev').addEventListener('click', prevCard);
+  document.getElementById('fc-card-wrap').addEventListener('click', flipCard);
+}
+
+function buildDeck(filter) {
+  State.flashcards.filter = filter;
+  State.flashcards.deck = filter === 'all'
+    ? shuffle([...FLASHCARDS])
+    : shuffle(FLASHCARDS.filter(c => c.category === filter));
+  State.flashcards.idx = 0;
+  State.flashcards.seen = new Set();
+}
+
+function renderFilterBtns() {
+  const container = document.getElementById('fc-filters');
+  const categories = ['all', ...new Set(FLASHCARDS.map(c => c.category))];
+  container.innerHTML = categories.map(cat => `
+    <button class="filter-btn ${cat === 'all' ? 'active' : ''}"
+      data-cat="${cat}">${cat === 'all' ? 'Все' : cat}</button>
+  `).join('');
+
+  container.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      container.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      buildDeck(btn.dataset.cat);
+      renderFC();
+    });
+  });
+}
+
+function renderFC() {
+  const { deck, idx } = State.flashcards;
+  if (!deck.length) return;
+
+  const card = deck[idx];
+  const cardEl = document.getElementById('fc-card');
+  cardEl.classList.remove('flipped');
+
+  cardEl.querySelector('.fc-front').innerHTML = `
+    <div class="fc-category-badge">${card.category}</div>
+    <div class="fc-word-ka">${card.ka}</div>
+    <div class="fc-hint">нажмите чтобы перевернуть</div>
+  `;
+
+  cardEl.querySelector('.fc-back').innerHTML = `
+    <div class="fc-category-badge">${card.category}</div>
+    <div class="fc-word-ru">${card.ru}</div>
+    <div class="fc-word-rom">${card.rom}</div>
+  `;
+
+  document.getElementById('fc-counter').textContent =
+    `${idx + 1} / ${deck.length}`;
+}
+
+function flipCard() {
+  document.getElementById('fc-card').classList.toggle('flipped');
+}
+
+function nextCard() {
+  const { deck } = State.flashcards;
+  State.flashcards.seen.add(State.flashcards.idx);
+  State.flashcards.idx = (State.flashcards.idx + 1) % deck.length;
+  if (State.flashcards.seen.size === deck.length) {
+    State.flashcards.seen.clear();
+    showToast('Колода пройдена! 🎓 Начинаем снова');
+    buildDeck(State.flashcards.filter);
+  }
+  renderFC();
+}
+
+function prevCard() {
+  const { deck } = State.flashcards;
+  State.flashcards.idx = (State.flashcards.idx - 1 + deck.length) % deck.length;
+  renderFC();
+}
+
+// ── TIPS ──
+function renderTips() {
+  const container = document.getElementById('tips-container');
+  container.innerHTML = TIPS.map(tip => `
+    <div class="tip-card" style="background: linear-gradient(135deg, var(--card), var(--card2)); --tip-color: ${tip.color};">
+      <div class="tip-header">
+        <span class="tip-icon">${tip.icon}</span>
+        <span class="tip-title">${tip.title}</span>
+      </div>
+      <div class="tip-text">${tip.text}</div>
+    </div>
+  `).join('');
+}
+
+// ── UTILITIES ──
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function escHtml(str) {
+  return str.replace(/'/g, "\\'");
+}
