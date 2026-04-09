@@ -147,6 +147,11 @@
   <section id="sec-phrases" class="section">
     <div class="section-title">Разговорник</div>
     <div class="section-sub">Нажмите на фразу, чтобы скопировать — отправьте в чат!</div>
+    <div class="phrase-search-wrap">
+      <span class="phrase-search-icon">🔍</span>
+      <input class="phrase-search" id="phrase-search" type="search"
+        placeholder="Поиск: вода, спасибо, такси…">
+    </div>
     <div id="phrases-container"></div>
 
     <!-- Key phrase callout -->
@@ -219,6 +224,30 @@
 
 <!-- TOAST -->
 <div class="toast" id="toast">Скопировано!</div>
+
+<!-- ONBOARDING -->
+<div class="onboarding-overlay" id="onboarding-overlay">
+  <div class="onboarding-box">
+    <div class="onb-flag">🇬🇪</div>
+    <div class="onb-title">Грузинский для туриста</div>
+    <div class="onb-sub">Выучи алфавит и базовые фразы<br>за одно путешествие</div>
+    <div class="onb-features">
+      <div class="onb-feature">
+        <span class="onb-feature-icon">🔤</span>
+        <div><strong>Алфавит Мхедрули</strong>33 буквы с произношением и тренажёром письма</div>
+      </div>
+      <div class="onb-feature">
+        <span class="onb-feature-icon">💬</span>
+        <div><strong>Разговорник</strong>Фразы для еды, навигации и экстренных ситуаций</div>
+      </div>
+      <div class="onb-feature">
+        <span class="onb-feature-icon">🃏</span>
+        <div><strong>Карточки</strong>44 слова — учи по темам, отмечай выученные</div>
+      </div>
+    </div>
+    <button class="onb-btn" onclick="closeOnboarding()">Поехали! 🇬🇪</button>
+  </div>
+</div>
 
 <!-- AUDIO BETA MODAL -->
 <div class="modal-overlay" id="audio-modal" onclick="closeAudioModal(event)">

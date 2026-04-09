@@ -1,5 +1,39 @@
 /* Georgian Language Learning App — Main Logic */
 
+// ── HAPTIC ──
+function haptic(type) {
+  try {
+    const hf = window.Telegram?.WebApp?.HapticFeedback;
+    if (!hf) return;
+    if (type === 'success') hf.notificationOccurred('success');
+    else if (type === 'error') hf.notificationOccurred('error');
+    else hf.impactOccurred(type);
+  } catch(e) {}
+}
+
+// ── QUIZ SOUND ──
+function playQuizSound(correct) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    if (correct) {
+      osc.frequency.setValueAtTime(523, ctx.currentTime);
+      osc.frequency.setValueAtTime(659, ctx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+      osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.35);
+    } else {
+      osc.frequency.setValueAtTime(220, ctx.currentTime);
+      osc.frequency.setValueAtTime(160, ctx.currentTime + 0.12);
+      gain.gain.setValueAtTime(0.10, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.3);
+    }
+  } catch(e) {}
+}
+
 // ── TTS ──
 const TTS = {
   _current: null,
@@ -92,6 +126,7 @@ const State = {
     idx: 0,
     filter: 'all',
     seen: new Set(),
+    learned: new Set(JSON.parse(localStorage.getItem('gla_fc_learned') || '[]')),
   },
   phrases: {},
 };
@@ -301,6 +336,71 @@ function writingNext() {
   Drawing.loadLetter(idx);
 }
 
+// ── ONBOARDING ──
+function closeOnboarding() {
+  localStorage.setItem('gla_onboarded', '1');
+  document.getElementById('onboarding-overlay').classList.remove('show');
+  haptic('medium');
+}
+
+// ── PHRASE SEARCH ──
+function filterPhrases(query) {
+  const q = query.trim().toLowerCase();
+  const container = document.getElementById('phrases-container');
+  if (!q) { renderPhrases(); return; }
+
+  container.innerHTML = '';
+  let totalFound = 0;
+
+  Object.entries(PHRASES).forEach(([key, category]) => {
+    const prefix = PHRASE_PREFIX[key] || key[0];
+    const matched = category.items.filter((item, i) =>
+      item.ka.toLowerCase().includes(q) ||
+      item.ru.toLowerCase().includes(q) ||
+      item.rom.toLowerCase().includes(q)
+    );
+    if (!matched.length) return;
+    totalFound += matched.length;
+
+    const div = document.createElement('div');
+    div.className = 'phrase-category open';
+    div.innerHTML = `
+      <div class="phrase-category-header">
+        <span class="phrase-category-icon">${category.icon}</span>
+        <span class="phrase-category-title">${category.title}</span>
+        <span class="phrase-category-count">${matched.length} фраз</span>
+        <span class="phrase-chevron">▼</span>
+      </div>
+      <div class="phrase-list">
+        ${matched.map(item => {
+          const i = category.items.indexOf(item);
+          return `
+          <div class="phrase-item">
+            <div class="phrase-ka">${item.ka}</div>
+            <div class="phrase-rom">${item.rom}</div>
+            <div class="phrase-ru">${item.ru}</div>
+            ${item.note ? `<div class="phrase-note">ℹ️ ${item.note}</div>` : ''}
+            <div class="phrase-actions">
+              <button class="speak-btn speak-btn-phrase"
+                onclick="TTS.play('phrase_${prefix}${i}', this)">🔊 Слушать</button>
+              <button class="phrase-copy-btn"
+                onclick="copyPhrase(this, '${escHtml(item.ka)}')">📋</button>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    `;
+    div.querySelector('.phrase-category-header').addEventListener('click', () => {
+      div.classList.toggle('open');
+    });
+    container.appendChild(div);
+  });
+
+  if (!totalFound) {
+    container.innerHTML = `<div class="phrase-no-results">Ничего не найдено по запросу «${query}»</div>`;
+  }
+}
+
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', () => {
   initNav();
@@ -310,6 +410,16 @@ document.addEventListener('DOMContentLoaded', () => {
   renderTips();
   showSection('alphabet');
   updateProgress();
+
+  // Phrase search
+  document.getElementById('phrase-search').addEventListener('input', e => {
+    filterPhrases(e.target.value);
+  });
+
+  // Onboarding
+  if (!localStorage.getItem('gla_onboarded')) {
+    document.getElementById('onboarding-overlay').classList.add('show');
+  }
 
   // Telegram Web App init
   if (window.Telegram?.WebApp) {
@@ -437,6 +547,8 @@ function setupModeToggle() {
 }
 
 // ── QUIZ ──
+const QUIZ_ROUND = 20;
+
 function startQuiz() {
   State.quiz = { score: 0, wrong: 0, streak: 0, total: 0, answered: false };
   renderQuizStats();
@@ -496,9 +608,8 @@ function handleQuizAnswer(btn, correct) {
     btn.classList.add('correct');
     State.quiz.score++;
     State.quiz.streak++;
-    if (!State.alphabet.learned.has(ALPHABET.indexOf(correct))) {
-      // Optionally auto-mark as learned after quiz
-    }
+    haptic('success');
+    playQuizSound(true);
     if (State.quiz.streak > 0 && State.quiz.streak % 5 === 0) {
       showToast(`🔥 ${State.quiz.streak} подряд! Огонь!`);
     }
@@ -506,7 +617,8 @@ function handleQuizAnswer(btn, correct) {
     btn.classList.add('wrong');
     State.quiz.wrong++;
     State.quiz.streak = 0;
-    // Show correct answer
+    haptic('error');
+    playQuizSound(false);
     document.querySelectorAll('.quiz-option').forEach(b => {
       if (b.dataset.correct === 'true') b.classList.add('correct');
     });
@@ -514,9 +626,38 @@ function handleQuizAnswer(btn, correct) {
 
   renderQuizStats();
 
-  setTimeout(() => {
-    if (State.quiz.answered) nextQuestion();
-  }, 1200);
+  if (State.quiz.total >= QUIZ_ROUND) {
+    setTimeout(showQuizResult, 1200);
+  } else {
+    setTimeout(() => {
+      if (State.quiz.answered) nextQuestion();
+    }, 1200);
+  }
+}
+
+function showQuizResult() {
+  const { score, wrong, total } = State.quiz;
+  const acc = Math.round((score / total) * 100);
+  let emoji, grade;
+  if (acc >= 90)      { emoji = '🏆'; grade = 'Блестяще!'; }
+  else if (acc >= 70) { emoji = '🎯'; grade = 'Хорошо!'; }
+  else if (acc >= 50) { emoji = '💪'; grade = 'Неплохо!'; }
+  else                { emoji = '📚'; grade = 'Продолжай учить!'; }
+
+  document.getElementById('quiz-wrap').innerHTML = `
+    <div class="quiz-result">
+      <div class="quiz-result-emoji">${emoji}</div>
+      <div class="quiz-result-grade">${grade}</div>
+      <div class="quiz-result-stats">
+        <div class="qrs-item"><span class="qrs-num green">${score}</span><span class="qrs-label">верно</span></div>
+        <div class="qrs-item"><span class="qrs-num red">${wrong}</span><span class="qrs-label">ошибок</span></div>
+        <div class="qrs-item"><span class="qrs-num" style="color:var(--a2)">${acc}%</span><span class="qrs-label">точность</span></div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:20px" onclick="startQuiz()">
+        🔄 Ещё раунд
+      </button>
+    </div>
+  `;
 }
 
 function renderQuizStats() {
@@ -654,14 +795,40 @@ function renderFC() {
     <div class="fc-hint">нажмите чтобы перевернуть</div>
   `;
 
+  const isLearned = State.flashcards.learned.has(card._idx);
   cardEl.querySelector('.fc-back').innerHTML = `
     <div class="fc-category-badge">${card.category}</div>
     <div class="fc-word-ru">${card.ru}</div>
     <div class="fc-word-rom">${card.rom}</div>
+    <button class="fc-learned-btn ${isLearned ? 'is-learned' : ''}"
+      onclick="event.stopPropagation(); toggleFCLearned(${card._idx})">
+      ${isLearned ? '✓ Выучено' : '+ Выучил!'}
+    </button>
   `;
 
-  document.getElementById('fc-counter').textContent =
-    `${idx + 1} / ${deck.length}`;
+  const learnedCount = State.flashcards.learned.size;
+  const learnedStr = learnedCount > 0 ? ` · <span class="fc-learned-count">✓ ${learnedCount} выучено</span>` : '';
+  document.getElementById('fc-counter').innerHTML =
+    `${idx + 1} / ${deck.length}${learnedStr}`;
+}
+
+function toggleFCLearned(wordIdx) {
+  const fc = State.flashcards;
+  if (fc.learned.has(wordIdx)) {
+    fc.learned.delete(wordIdx);
+  } else {
+    fc.learned.add(wordIdx);
+    haptic('success');
+    showToast('Слово запомнено! 🎉');
+  }
+  saveFCProgress();
+  renderFC();
+  // Keep card flipped after toggling
+  document.getElementById('fc-card').classList.add('flipped');
+}
+
+function saveFCProgress() {
+  localStorage.setItem('gla_fc_learned', JSON.stringify([...State.flashcards.learned]));
 }
 
 function flipCard() {
