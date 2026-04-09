@@ -2,37 +2,46 @@
 
 // ── TTS ──
 const TTS = {
-  supported: 'speechSynthesis' in window,
+  _current: null,
   _activeBtn: null,
 
-  speak(text, btn = null) {
-    if (!this.supported) {
-      showToast('Озвучка недоступна на этом устройстве');
-      return;
+  play(key, btn = null) {
+    // Stop previous
+    if (this._current) {
+      this._current.pause();
+      this._current.currentTime = 0;
     }
-    window.speechSynthesis.cancel();
     if (this._activeBtn) {
       this._activeBtn.classList.remove('speaking');
       this._activeBtn = null;
     }
-    const utt = new SpeechSynthesisUtterance(text);
-    utt.lang = 'ka-GE';
-    utt.rate = 0.72;
-    utt.pitch = 1;
+
+    const audio = new Audio(`audio/${key}.mp3`);
+    this._current = audio;
+
     if (btn) {
       btn.classList.add('speaking');
       this._activeBtn = btn;
     }
-    utt.onend = () => {
+
+    audio.onended = () => {
       if (btn) btn.classList.remove('speaking');
-      this._activeBtn = null;
+      if (this._activeBtn === btn) this._activeBtn = null;
     };
-    utt.onerror = () => {
+    audio.onerror = () => {
       if (btn) btn.classList.remove('speaking');
-      this._activeBtn = null;
+      if (this._activeBtn === btn) this._activeBtn = null;
     };
-    window.speechSynthesis.speak(utt);
+
+    audio.play().catch(() => {
+      if (btn) btn.classList.remove('speaking');
+    });
   },
+};
+
+const PHRASE_PREFIX = {
+  greeting: 'g', polite: 'p', food: 'f',
+  navigation: 'n', shopping: 's', emergency: 'e',
 };
 
 // ── STATE ──
@@ -140,7 +149,7 @@ function renderLetterDetail(idx) {
   el.innerHTML = `
     <div class="letter-big">${item.letter}</div>
     <button class="speak-btn speak-btn-lg" id="speak-letter-${idx}"
-      onclick="TTS.speak('${item.letter}', this)">🔊</button>
+      onclick="TTS.play('letter_${idx}', this)">🔊</button>
     <div class="letter-detail-rom">${item.roman}</div>
     <div class="letter-detail-ru">${item.ru}</div>
     <div class="letter-detail-hint">💡 ${item.hint}</div>
@@ -224,7 +233,7 @@ function nextQuestion() {
     <div class="quiz-question">
       <div class="quiz-letter">${correct.letter}</div>
       <button class="speak-btn speak-btn-quiz"
-        onclick="TTS.speak('${correct.letter}', this)">🔊 Слушать</button>
+        onclick="TTS.play('letter_${correctIdx}', this)">🔊 Слушать</button>
       <div class="quiz-prompt">Как читается эта буква?</div>
     </div>
     <div class="quiz-options">
@@ -306,6 +315,7 @@ function renderPhrases() {
   container.innerHTML = '';
 
   Object.entries(PHRASES).forEach(([key, category]) => {
+    const prefix = PHRASE_PREFIX[key] || key[0];
     const div = document.createElement('div');
     div.className = 'phrase-category';
     div.innerHTML = `
@@ -316,7 +326,7 @@ function renderPhrases() {
         <span class="phrase-chevron">▼</span>
       </div>
       <div class="phrase-list">
-        ${category.items.map(item => `
+        ${category.items.map((item, i) => `
           <div class="phrase-item">
             <div class="phrase-ka">${item.ka}</div>
             <div class="phrase-rom">${item.rom}</div>
@@ -324,7 +334,7 @@ function renderPhrases() {
             ${item.note ? `<div class="phrase-note">ℹ️ ${item.note}</div>` : ''}
             <div class="phrase-actions">
               <button class="speak-btn speak-btn-phrase"
-                onclick="TTS.speak('${escHtml(item.ka)}', this)">🔊 Слушать</button>
+                onclick="TTS.play('phrase_${prefix}${i}', this)">🔊 Слушать</button>
               <button class="phrase-copy-btn"
                 onclick="copyPhrase(this, '${escHtml(item.ka)}')">📋</button>
             </div>
@@ -367,9 +377,10 @@ function renderFlashcards() {
 
 function buildDeck(filter) {
   State.flashcards.filter = filter;
+  const indexed = FLASHCARDS.map((card, i) => ({ ...card, _idx: i }));
   State.flashcards.deck = filter === 'all'
-    ? shuffle([...FLASHCARDS])
-    : shuffle(FLASHCARDS.filter(c => c.category === filter));
+    ? shuffle([...indexed])
+    : shuffle(indexed.filter(c => c.category === filter));
   State.flashcards.idx = 0;
   State.flashcards.seen = new Set();
 }
@@ -404,7 +415,7 @@ function renderFC() {
     <div class="fc-category-badge">${card.category}</div>
     <div class="fc-word-ka">${card.ka}</div>
     <button class="speak-btn speak-btn-fc"
-      onclick="event.stopPropagation(); TTS.speak('${card.ka.replace(/'/g,"\\'")}', this)">🔊</button>
+      onclick="event.stopPropagation(); TTS.play('word_${card._idx}', this)">🔊</button>
     <div class="fc-hint">нажмите чтобы перевернуть</div>
   `;
 
