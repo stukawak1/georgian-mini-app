@@ -215,7 +215,6 @@ const Drawing = {
     this.refCtx.fillStyle    = '#ffffff';
     this.refCtx.fillText(letter.letter, s / 2, s / 2);
 
-    renderStrokeArrows(idx);
   },
 
   clear() {
@@ -235,7 +234,6 @@ const Drawing = {
     btn.textContent = '✓ Проверить';
     btn.className = 'btn btn-primary';
     btn.onclick = () => Drawing.check();
-    renderStrokeArrows(this.letterIdx);
   },
 
   check() {
@@ -292,83 +290,6 @@ const Drawing = {
   },
 };
 
-// ── STROKE ARROWS (static) ──
-function renderStrokeArrows(idx) {
-  const svg = document.getElementById('stroke-svg');
-  const letter = ALPHABET[idx].letter;
-  const strokes = STROKE_ORDERS && STROKE_ORDERS[letter];
-  if (!strokes) { svg.style.display = 'none'; return; }
-
-  const NS = 'http://www.w3.org/2000/svg';
-  svg.innerHTML = `
-    <defs>
-      <marker id="arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-        <polygon points="0,0.5 5,3 0,5.5" fill="rgba(255,107,44,0.85)"/>
-      </marker>
-    </defs>`;
-  svg.style.display = 'block';
-
-  strokes.forEach((d, i) => {
-    // Ghost path
-    const ghost = document.createElementNS(NS, 'path');
-    ghost.setAttribute('d', d);
-    ghost.setAttribute('fill', 'none');
-    ghost.setAttribute('stroke', 'rgba(255,255,255,0.10)');
-    ghost.setAttribute('stroke-width', '4.5');
-    ghost.setAttribute('stroke-linecap', 'round');
-    svg.appendChild(ghost);
-
-    // Measure path for arrow placement
-    const measurer = document.createElementNS(NS, 'path');
-    measurer.setAttribute('d', d);
-    svg.appendChild(measurer);
-    const len = measurer.getTotalLength();
-    svg.removeChild(measurer);
-
-    // Direction arrow at ~60% of path
-    const arrow = document.createElementNS(NS, 'path');
-    arrow.setAttribute('d', d);
-    arrow.setAttribute('fill', 'none');
-    arrow.setAttribute('stroke', 'rgba(255,107,44,0.75)');
-    arrow.setAttribute('stroke-width', '3');
-    arrow.setAttribute('stroke-linecap', 'round');
-    arrow.setAttribute('stroke-linejoin', 'round');
-    arrow.setAttribute('marker-end', 'url(#arr)');
-    // Show only a small segment around 60% for the arrowhead direction
-    const t = len * 0.6;
-    const seg = Math.min(len * 0.25, 14);
-    arrow.style.strokeDasharray = `0 ${Math.max(0, t - seg)} ${seg} ${len}`;
-    svg.appendChild(arrow);
-
-    // Numbered start dot
-    const startPath = document.createElementNS(NS, 'path');
-    startPath.setAttribute('d', d);
-    svg.appendChild(startPath);
-    const pt = startPath.getPointAtLength(0);
-    svg.removeChild(startPath);
-
-    const g = document.createElementNS(NS, 'g');
-
-    const circle = document.createElementNS(NS, 'circle');
-    circle.setAttribute('cx', pt.x); circle.setAttribute('cy', pt.y);
-    circle.setAttribute('r', '5');
-    circle.setAttribute('fill', 'rgba(255,107,44,0.85)');
-    circle.setAttribute('stroke', 'rgba(255,255,255,0.7)');
-    circle.setAttribute('stroke-width', '1.5');
-
-    const label = document.createElementNS(NS, 'text');
-    label.setAttribute('x', pt.x); label.setAttribute('y', pt.y + 3.5);
-    label.setAttribute('text-anchor', 'middle');
-    label.setAttribute('fill', 'white');
-    label.setAttribute('font-size', '6');
-    label.setAttribute('font-weight', 'bold');
-    label.setAttribute('font-family', 'sans-serif');
-    label.textContent = i + 1;
-
-    g.appendChild(circle); g.appendChild(label);
-    svg.appendChild(g);
-  });
-}
 
 function writingPrev() {
   const idx = (Drawing.letterIdx - 1 + ALPHABET.length) % ALPHABET.length;
