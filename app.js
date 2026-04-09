@@ -191,6 +191,10 @@ const Drawing = {
       `<span class="wm-hint">${letter.hint}</span>`;
     document.getElementById('write-score').innerHTML = '';
     document.getElementById('canvas-hint-overlay').style.display = 'flex';
+    const btn = document.getElementById('write-check-btn');
+    btn.textContent = '✓ Проверить';
+    btn.className = 'btn btn-primary';
+    btn.onclick = () => Drawing.check();
 
     const speakBtn = document.getElementById('write-speak-btn');
     speakBtn.onclick = () => TTS.play(`letter_${idx}`, speakBtn);
