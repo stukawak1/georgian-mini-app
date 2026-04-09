@@ -289,12 +289,135 @@ const Drawing = {
   },
 };
 
+// ── STROKE GUIDE ──
+const StrokeGuide = {
+  _timers: [],
+  _active: false,
+  _idx: 0,
+
+  toggle() {
+    this._active ? this.hide() : this.show(Drawing.letterIdx);
+  },
+
+  show(idx) {
+    this._idx = idx;
+    this._active = true;
+    const svg = document.getElementById('stroke-svg');
+    svg.style.display = 'block';
+    document.getElementById('stroke-guide-btn').classList.add('active');
+    this._animate(idx);
+  },
+
+  hide() {
+    this._active = false;
+    this._timers.forEach(t => clearTimeout(t));
+    this._timers = [];
+    const svg = document.getElementById('stroke-svg');
+    svg.style.display = 'none';
+    svg.innerHTML = '';
+    document.getElementById('stroke-guide-btn').classList.remove('active');
+  },
+
+  _animate(idx) {
+    const svg = document.getElementById('stroke-svg');
+    svg.innerHTML = `
+      <defs>
+        <marker id="arr" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto">
+          <polygon points="0,0 5,2.5 0,5" fill="#FF6B2C" opacity="0.9"/>
+        </marker>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="1.5" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>`;
+
+    const letter = ALPHABET[idx].letter;
+    const strokes = STROKE_ORDERS[letter];
+    if (!strokes) { this.hide(); showToast('Нет данных для этой буквы'); return; }
+
+    const NS = 'http://www.w3.org/2000/svg';
+    const STROKE_MS = 900;
+    const GAP_MS    = 400;
+
+    // Draw ghost strokes (dim guide underneath)
+    strokes.forEach(d => {
+      const ghost = document.createElementNS(NS, 'path');
+      ghost.setAttribute('d', d);
+      ghost.setAttribute('fill', 'none');
+      ghost.setAttribute('stroke', 'rgba(255,255,255,0.08)');
+      ghost.setAttribute('stroke-width', '4');
+      ghost.setAttribute('stroke-linecap', 'round');
+      svg.appendChild(ghost);
+    });
+
+    let delay = 100;
+    strokes.forEach((d, i) => {
+      // Draw animated stroke
+      this._timers.push(setTimeout(() => {
+        if (!this._active) return;
+        const path = document.createElementNS(NS, 'path');
+        path.setAttribute('d', d);
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke', '#FF6B2C');
+        path.setAttribute('stroke-width', '4.5');
+        path.setAttribute('stroke-linecap', 'round');
+        path.setAttribute('stroke-linejoin', 'round');
+        path.setAttribute('marker-end', 'url(#arr)');
+        path.setAttribute('filter', 'url(#glow)');
+        svg.appendChild(path);
+
+        const len = path.getTotalLength();
+        path.style.strokeDasharray  = len;
+        path.style.strokeDashoffset = len;
+        path.style.transition = `stroke-dashoffset ${STROKE_MS}ms cubic-bezier(0.4,0,0.2,1)`;
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          path.style.strokeDashoffset = '0';
+        }));
+
+        // Numbered start dot
+        const pt = path.getPointAtLength(0);
+        const g  = document.createElementNS(NS, 'g');
+
+        const circle = document.createElementNS(NS, 'circle');
+        circle.setAttribute('cx', pt.x); circle.setAttribute('cy', pt.y);
+        circle.setAttribute('r', '5.5');
+        circle.setAttribute('fill', '#FF6B2C');
+        circle.setAttribute('stroke', 'white');
+        circle.setAttribute('stroke-width', '1.5');
+
+        const label = document.createElementNS(NS, 'text');
+        label.setAttribute('x', pt.x); label.setAttribute('y', pt.y + 3.5);
+        label.setAttribute('text-anchor', 'middle');
+        label.setAttribute('fill', 'white');
+        label.setAttribute('font-size', '6.5');
+        label.setAttribute('font-weight', 'bold');
+        label.setAttribute('font-family', 'sans-serif');
+        label.textContent = i + 1;
+
+        g.appendChild(circle); g.appendChild(label);
+        svg.appendChild(g);
+      }, delay));
+
+      delay += STROKE_MS + GAP_MS;
+    });
+
+    // Loop
+    this._timers.push(setTimeout(() => {
+      if (!this._active) return;
+      svg.innerHTML = '';
+      this._animate(idx);
+    }, delay + 600));
+  },
+};
+
 function writingPrev() {
+  StrokeGuide.hide();
   const idx = (Drawing.letterIdx - 1 + ALPHABET.length) % ALPHABET.length;
   Drawing.loadLetter(idx);
 }
 
 function writingNext() {
+  StrokeGuide.hide();
   const idx = (Drawing.letterIdx + 1) % ALPHABET.length;
   Drawing.loadLetter(idx);
 }

@@ -970,7 +970,31 @@ body {
 .write-actions {
   display: flex;
   gap: 8px;
+  margin-bottom: 10px;
+}
+
+.stroke-guide-btn {
+  width: 100%;
+  padding: 11px;
+  background: rgba(255,107,44,0.08);
+  border: 1px dashed rgba(255,107,44,0.35);
+  border-radius: var(--radius-sm);
+  color: var(--a1);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: all 0.2s;
   margin-bottom: 4px;
+  letter-spacing: 0.2px;
+}
+
+.stroke-guide-btn:hover  { background: rgba(255,107,44,0.14); }
+.stroke-guide-btn.active {
+  background: rgba(255,107,44,0.14);
+  border-style: solid;
+  border-color: rgba(255,107,44,0.6);
+  box-shadow: 0 0 14px rgba(255,107,44,0.15);
 }
 
 /* ── SCROLLBAR ── */
