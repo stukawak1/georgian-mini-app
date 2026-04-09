@@ -214,6 +214,8 @@ const Drawing = {
     this.refCtx.textBaseline = 'middle';
     this.refCtx.fillStyle    = '#ffffff';
     this.refCtx.fillText(letter.letter, s / 2, s / 2);
+
+    renderStrokeArrows(idx);
   },
 
   clear() {
@@ -233,6 +235,7 @@ const Drawing = {
     btn.textContent = '✓ Проверить';
     btn.className = 'btn btn-primary';
     btn.onclick = () => Drawing.check();
+    renderStrokeArrows(this.letterIdx);
   },
 
   check() {
@@ -289,135 +292,90 @@ const Drawing = {
   },
 };
 
-// ── STROKE GUIDE ──
-const StrokeGuide = {
-  _timers: [],
-  _active: false,
-  _idx: 0,
+// ── STROKE ARROWS (static) ──
+function renderStrokeArrows(idx) {
+  const svg = document.getElementById('stroke-svg');
+  const letter = ALPHABET[idx].letter;
+  const strokes = STROKE_ORDERS && STROKE_ORDERS[letter];
+  if (!strokes) { svg.style.display = 'none'; return; }
 
-  toggle() {
-    this._active ? this.hide() : this.show(Drawing.letterIdx);
-  },
+  const NS = 'http://www.w3.org/2000/svg';
+  svg.innerHTML = `
+    <defs>
+      <marker id="arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+        <polygon points="0,0.5 5,3 0,5.5" fill="rgba(255,107,44,0.85)"/>
+      </marker>
+    </defs>`;
+  svg.style.display = 'block';
 
-  show(idx) {
-    this._idx = idx;
-    this._active = true;
-    const svg = document.getElementById('stroke-svg');
-    svg.style.display = 'block';
-    document.getElementById('stroke-guide-btn').classList.add('active');
-    this._animate(idx);
-  },
+  strokes.forEach((d, i) => {
+    // Ghost path
+    const ghost = document.createElementNS(NS, 'path');
+    ghost.setAttribute('d', d);
+    ghost.setAttribute('fill', 'none');
+    ghost.setAttribute('stroke', 'rgba(255,255,255,0.10)');
+    ghost.setAttribute('stroke-width', '4.5');
+    ghost.setAttribute('stroke-linecap', 'round');
+    svg.appendChild(ghost);
 
-  hide() {
-    this._active = false;
-    this._timers.forEach(t => clearTimeout(t));
-    this._timers = [];
-    const svg = document.getElementById('stroke-svg');
-    svg.style.display = 'none';
-    svg.innerHTML = '';
-    document.getElementById('stroke-guide-btn').classList.remove('active');
-  },
+    // Measure path for arrow placement
+    const measurer = document.createElementNS(NS, 'path');
+    measurer.setAttribute('d', d);
+    svg.appendChild(measurer);
+    const len = measurer.getTotalLength();
+    svg.removeChild(measurer);
 
-  _animate(idx) {
-    const svg = document.getElementById('stroke-svg');
-    svg.innerHTML = `
-      <defs>
-        <marker id="arr" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto">
-          <polygon points="0,0 5,2.5 0,5" fill="#FF6B2C" opacity="0.9"/>
-        </marker>
-        <filter id="glow">
-          <feGaussianBlur stdDeviation="1.5" result="blur"/>
-          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-      </defs>`;
+    // Direction arrow at ~60% of path
+    const arrow = document.createElementNS(NS, 'path');
+    arrow.setAttribute('d', d);
+    arrow.setAttribute('fill', 'none');
+    arrow.setAttribute('stroke', 'rgba(255,107,44,0.75)');
+    arrow.setAttribute('stroke-width', '3');
+    arrow.setAttribute('stroke-linecap', 'round');
+    arrow.setAttribute('stroke-linejoin', 'round');
+    arrow.setAttribute('marker-end', 'url(#arr)');
+    // Show only a small segment around 60% for the arrowhead direction
+    const t = len * 0.6;
+    const seg = Math.min(len * 0.25, 14);
+    arrow.style.strokeDasharray = `0 ${Math.max(0, t - seg)} ${seg} ${len}`;
+    svg.appendChild(arrow);
 
-    const letter = ALPHABET[idx].letter;
-    const strokes = STROKE_ORDERS[letter];
-    if (!strokes) { this.hide(); showToast('Нет данных для этой буквы'); return; }
+    // Numbered start dot
+    const startPath = document.createElementNS(NS, 'path');
+    startPath.setAttribute('d', d);
+    svg.appendChild(startPath);
+    const pt = startPath.getPointAtLength(0);
+    svg.removeChild(startPath);
 
-    const NS = 'http://www.w3.org/2000/svg';
-    const STROKE_MS = 900;
-    const GAP_MS    = 400;
+    const g = document.createElementNS(NS, 'g');
 
-    // Draw ghost strokes (dim guide underneath)
-    strokes.forEach(d => {
-      const ghost = document.createElementNS(NS, 'path');
-      ghost.setAttribute('d', d);
-      ghost.setAttribute('fill', 'none');
-      ghost.setAttribute('stroke', 'rgba(255,255,255,0.08)');
-      ghost.setAttribute('stroke-width', '4');
-      ghost.setAttribute('stroke-linecap', 'round');
-      svg.appendChild(ghost);
-    });
+    const circle = document.createElementNS(NS, 'circle');
+    circle.setAttribute('cx', pt.x); circle.setAttribute('cy', pt.y);
+    circle.setAttribute('r', '5');
+    circle.setAttribute('fill', 'rgba(255,107,44,0.85)');
+    circle.setAttribute('stroke', 'rgba(255,255,255,0.7)');
+    circle.setAttribute('stroke-width', '1.5');
 
-    let delay = 100;
-    strokes.forEach((d, i) => {
-      // Draw animated stroke
-      this._timers.push(setTimeout(() => {
-        if (!this._active) return;
-        const path = document.createElementNS(NS, 'path');
-        path.setAttribute('d', d);
-        path.setAttribute('fill', 'none');
-        path.setAttribute('stroke', '#FF6B2C');
-        path.setAttribute('stroke-width', '4.5');
-        path.setAttribute('stroke-linecap', 'round');
-        path.setAttribute('stroke-linejoin', 'round');
-        path.setAttribute('marker-end', 'url(#arr)');
-        path.setAttribute('filter', 'url(#glow)');
-        svg.appendChild(path);
+    const label = document.createElementNS(NS, 'text');
+    label.setAttribute('x', pt.x); label.setAttribute('y', pt.y + 3.5);
+    label.setAttribute('text-anchor', 'middle');
+    label.setAttribute('fill', 'white');
+    label.setAttribute('font-size', '6');
+    label.setAttribute('font-weight', 'bold');
+    label.setAttribute('font-family', 'sans-serif');
+    label.textContent = i + 1;
 
-        const len = path.getTotalLength();
-        path.style.strokeDasharray  = len;
-        path.style.strokeDashoffset = len;
-        path.style.transition = `stroke-dashoffset ${STROKE_MS}ms cubic-bezier(0.4,0,0.2,1)`;
-        requestAnimationFrame(() => requestAnimationFrame(() => {
-          path.style.strokeDashoffset = '0';
-        }));
-
-        // Numbered start dot
-        const pt = path.getPointAtLength(0);
-        const g  = document.createElementNS(NS, 'g');
-
-        const circle = document.createElementNS(NS, 'circle');
-        circle.setAttribute('cx', pt.x); circle.setAttribute('cy', pt.y);
-        circle.setAttribute('r', '5.5');
-        circle.setAttribute('fill', '#FF6B2C');
-        circle.setAttribute('stroke', 'white');
-        circle.setAttribute('stroke-width', '1.5');
-
-        const label = document.createElementNS(NS, 'text');
-        label.setAttribute('x', pt.x); label.setAttribute('y', pt.y + 3.5);
-        label.setAttribute('text-anchor', 'middle');
-        label.setAttribute('fill', 'white');
-        label.setAttribute('font-size', '6.5');
-        label.setAttribute('font-weight', 'bold');
-        label.setAttribute('font-family', 'sans-serif');
-        label.textContent = i + 1;
-
-        g.appendChild(circle); g.appendChild(label);
-        svg.appendChild(g);
-      }, delay));
-
-      delay += STROKE_MS + GAP_MS;
-    });
-
-    // Loop
-    this._timers.push(setTimeout(() => {
-      if (!this._active) return;
-      svg.innerHTML = '';
-      this._animate(idx);
-    }, delay + 600));
-  },
-};
+    g.appendChild(circle); g.appendChild(label);
+    svg.appendChild(g);
+  });
+}
 
 function writingPrev() {
-  StrokeGuide.hide();
   const idx = (Drawing.letterIdx - 1 + ALPHABET.length) % ALPHABET.length;
   Drawing.loadLetter(idx);
 }
 
 function writingNext() {
-  StrokeGuide.hide();
   const idx = (Drawing.letterIdx + 1) % ALPHABET.length;
   Drawing.loadLetter(idx);
 }
