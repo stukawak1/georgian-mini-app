@@ -225,6 +225,10 @@ const Drawing = {
     this.ctx.fillText(letter.letter, s / 2, s / 2);
     document.getElementById('write-score').innerHTML = '';
     document.getElementById('canvas-hint-overlay').style.display = 'flex';
+    const btn = document.getElementById('write-check-btn');
+    btn.textContent = '✓ Проверить';
+    btn.className = 'btn btn-primary';
+    btn.onclick = () => Drawing.check();
   },
 
   check() {
@@ -268,6 +272,10 @@ const Drawing = {
       <div class="score-num" style="color:${color}">${emoji} ${score}%</div>
       <div class="score-msg">${msg}</div>
     `;
+    const btn = document.getElementById('write-check-btn');
+    btn.textContent = 'Следующая →';
+    btn.className = 'btn btn-success';
+    btn.onclick = () => writingNext();
 
     if (score >= 75) {
       State.alphabet.learned.add(this.letterIdx);
