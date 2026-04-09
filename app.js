@@ -1,5 +1,40 @@
 /* Georgian Language Learning App — Main Logic */
 
+// ── TTS ──
+const TTS = {
+  supported: 'speechSynthesis' in window,
+  _activeBtn: null,
+
+  speak(text, btn = null) {
+    if (!this.supported) {
+      showToast('Озвучка недоступна на этом устройстве');
+      return;
+    }
+    window.speechSynthesis.cancel();
+    if (this._activeBtn) {
+      this._activeBtn.classList.remove('speaking');
+      this._activeBtn = null;
+    }
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.lang = 'ka-GE';
+    utt.rate = 0.72;
+    utt.pitch = 1;
+    if (btn) {
+      btn.classList.add('speaking');
+      this._activeBtn = btn;
+    }
+    utt.onend = () => {
+      if (btn) btn.classList.remove('speaking');
+      this._activeBtn = null;
+    };
+    utt.onerror = () => {
+      if (btn) btn.classList.remove('speaking');
+      this._activeBtn = null;
+    };
+    window.speechSynthesis.speak(utt);
+  },
+};
+
 // ── STATE ──
 const State = {
   currentSection: 'alphabet',
@@ -104,11 +139,13 @@ function renderLetterDetail(idx) {
   const isLearned = State.alphabet.learned.has(idx);
   el.innerHTML = `
     <div class="letter-big">${item.letter}</div>
+    <button class="speak-btn speak-btn-lg" id="speak-letter-${idx}"
+      onclick="TTS.speak('${item.letter}', this)">🔊</button>
     <div class="letter-detail-rom">${item.roman}</div>
     <div class="letter-detail-ru">${item.ru}</div>
     <div class="letter-detail-hint">💡 ${item.hint}</div>
     <div class="letter-detail-example">✦ ${item.example}</div>
-    <div style="margin-top:8px;">
+    <div style="margin-top:8px; display:flex; gap:8px;">
       <button class="btn ${isLearned ? 'btn-secondary' : 'btn-success'}" style="padding:8px 20px;flex:0 0 auto;"
         onclick="toggleLearned(${idx})">
         ${isLearned ? '✓ Выучена' : '+ Выучил!'}
@@ -186,6 +223,8 @@ function nextQuestion() {
   qWrap.innerHTML = `
     <div class="quiz-question">
       <div class="quiz-letter">${correct.letter}</div>
+      <button class="speak-btn speak-btn-quiz"
+        onclick="TTS.speak('${correct.letter}', this)">🔊 Слушать</button>
       <div class="quiz-prompt">Как читается эта буква?</div>
     </div>
     <div class="quiz-options">
@@ -278,12 +317,17 @@ function renderPhrases() {
       </div>
       <div class="phrase-list">
         ${category.items.map(item => `
-          <div class="phrase-item" onclick="copyPhrase(this, '${escHtml(item.ka)}')">
+          <div class="phrase-item">
             <div class="phrase-ka">${item.ka}</div>
             <div class="phrase-rom">${item.rom}</div>
             <div class="phrase-ru">${item.ru}</div>
             ${item.note ? `<div class="phrase-note">ℹ️ ${item.note}</div>` : ''}
-            <span class="phrase-copy">📋</span>
+            <div class="phrase-actions">
+              <button class="speak-btn speak-btn-phrase"
+                onclick="TTS.speak('${escHtml(item.ka)}', this)">🔊 Слушать</button>
+              <button class="phrase-copy-btn"
+                onclick="copyPhrase(this, '${escHtml(item.ka)}')">📋</button>
+            </div>
           </div>
         `).join('')}
       </div>
@@ -298,12 +342,13 @@ function renderPhrases() {
   container.querySelector('.phrase-category').classList.add('open');
 }
 
-function copyPhrase(el, text) {
+function copyPhrase(btn, text) {
+  const item = btn.closest('.phrase-item');
   if (navigator.clipboard) {
     navigator.clipboard.writeText(text).then(() => {
-      el.classList.add('copied');
+      btn.textContent = '✓';
       showToast('Скопировано в буфер 📋');
-      setTimeout(() => el.classList.remove('copied'), 2000);
+      setTimeout(() => { btn.textContent = '📋'; }, 2000);
     });
   }
 }
@@ -358,6 +403,8 @@ function renderFC() {
   cardEl.querySelector('.fc-front').innerHTML = `
     <div class="fc-category-badge">${card.category}</div>
     <div class="fc-word-ka">${card.ka}</div>
+    <button class="speak-btn speak-btn-fc"
+      onclick="event.stopPropagation(); TTS.speak('${card.ka.replace(/'/g,"\\'")}', this)">🔊</button>
     <div class="fc-hint">нажмите чтобы перевернуть</div>
   `;
 

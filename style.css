@@ -610,6 +610,96 @@ body {
   line-height: 1.6;
 }
 
+/* ── SPEAK BUTTON ── */
+.speak-btn {
+  border: none;
+  cursor: pointer;
+  border-radius: 20px;
+  font-weight: 600;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.speak-btn:active { transform: scale(0.92); }
+
+.speak-btn.speaking {
+  background: var(--primary) !important;
+  color: white !important;
+  border-color: var(--primary) !important;
+  animation: pulse-speak 0.8s ease infinite;
+}
+
+@keyframes pulse-speak {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(230,51,18,0.5); }
+  50% { box-shadow: 0 0 0 6px rgba(230,51,18,0); }
+}
+
+/* Large — letter detail */
+.speak-btn-lg {
+  background: rgba(74,158,255,0.15);
+  color: var(--blue);
+  border: 1.5px solid rgba(74,158,255,0.3);
+  padding: 8px 18px;
+  font-size: 16px;
+}
+.speak-btn-lg:hover { background: rgba(74,158,255,0.25); }
+
+/* Phrase list */
+.speak-btn-phrase {
+  background: rgba(74,158,255,0.12);
+  color: var(--blue);
+  border: 1px solid rgba(74,158,255,0.25);
+  padding: 6px 12px;
+  font-size: 12px;
+  flex: 1;
+}
+.speak-btn-phrase:hover { background: rgba(74,158,255,0.22); }
+
+/* Flashcard */
+.speak-btn-fc {
+  background: rgba(74,158,255,0.12);
+  color: var(--blue);
+  border: 1.5px solid rgba(74,158,255,0.25);
+  padding: 6px 16px;
+  font-size: 13px;
+}
+.speak-btn-fc:hover { background: rgba(74,158,255,0.22); }
+
+/* Quiz */
+.speak-btn-quiz {
+  background: rgba(74,158,255,0.12);
+  color: var(--blue);
+  border: 1.5px solid rgba(74,158,255,0.25);
+  padding: 8px 20px;
+  font-size: 14px;
+  margin: 4px 0 8px;
+}
+.speak-btn-quiz:hover { background: rgba(74,158,255,0.22); }
+
+/* Phrase actions row */
+.phrase-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.phrase-copy-btn {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--text2);
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.phrase-copy-btn:hover { background: rgba(255,255,255,0.12); }
+
 /* ── TOAST ── */
 .toast {
   position: fixed;
