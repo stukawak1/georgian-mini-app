@@ -59,6 +59,7 @@
     <div class="mode-toggle">
       <button class="mode-btn active" data-mode="browse">📖 Изучение</button>
       <button class="mode-btn" data-mode="quiz">🎯 Тренажёр</button>
+      <button class="mode-btn" data-mode="writing">✏️ Письмо</button>
     </div>
 
     <!-- BROWSE PANEL -->
@@ -83,6 +84,44 @@
           🟢 зелёный = выучена, 🟡 жёлтый = текущая
         </div>
       </div>
+    </div>
+
+    <!-- WRITING PANEL -->
+    <div id="writing-panel" style="display:none">
+
+      <!-- Letter nav -->
+      <div class="write-nav">
+        <button class="btn btn-secondary write-nav-btn" onclick="writingPrev()">←</button>
+        <div class="write-letter-display" id="write-letter-display">ა</div>
+        <button class="btn btn-secondary write-nav-btn" onclick="writingNext()">→</button>
+      </div>
+
+      <!-- Romanization + hint -->
+      <div class="write-meta" id="write-meta"></div>
+
+      <!-- Canvas -->
+      <div class="canvas-wrap" id="draw-canvas-wrap">
+        <canvas id="ref-canvas" style="display:none"></canvas>
+        <canvas id="draw-canvas"></canvas>
+        <div class="canvas-hint-overlay" id="canvas-hint-overlay">
+          Рисуйте здесь пальцем
+        </div>
+      </div>
+
+      <!-- Score -->
+      <div class="write-score" id="write-score"></div>
+
+      <!-- Actions -->
+      <div class="write-actions">
+        <button class="btn btn-secondary" onclick="Drawing.clear()">🗑 Очистить</button>
+        <button class="btn btn-primary"   onclick="Drawing.check()">✓ Проверить</button>
+      </div>
+
+      <!-- Audio -->
+      <div style="text-align:center; margin-top:10px;">
+        <button class="speak-btn speak-btn-lg" id="write-speak-btn">🔊 Как звучит</button>
+      </div>
+
     </div>
 
     <!-- QUIZ PANEL -->

@@ -96,6 +96,197 @@ const State = {
   phrases: {},
 };
 
+// ── WRITING TRAINER ──
+const Drawing = {
+  canvas: null, ctx: null,
+  refCanvas: null, refCtx: null,
+  isDrawing: false,
+  lastX: 0, lastY: 0,
+  hasStrokes: false,
+  letterIdx: 0,
+  _dpr: 1, _size: 300,
+
+  init() {
+    this.canvas    = document.getElementById('draw-canvas');
+    this.ctx       = this.canvas.getContext('2d');
+    this.refCanvas = document.getElementById('ref-canvas');
+    this.refCtx    = this.refCanvas.getContext('2d');
+    this._setupSize();
+    this._setupEvents();
+  },
+
+  _setupSize() {
+    const wrap = document.getElementById('draw-canvas-wrap');
+    const size = Math.min(wrap.offsetWidth || 320, 340);
+    const dpr  = window.devicePixelRatio || 1;
+    this._size = size;
+    this._dpr  = dpr;
+    [this.canvas, this.refCanvas].forEach(c => {
+      c.width  = size * dpr;
+      c.height = size * dpr;
+      c.style.width  = size + 'px';
+      c.style.height = size + 'px';
+    });
+    this.ctx.scale(dpr, dpr);
+    this.refCtx.scale(dpr, dpr);
+  },
+
+  _setupEvents() {
+    const c = this.canvas;
+    c.addEventListener('touchstart', e => { e.preventDefault(); this._start(e.touches[0]); }, { passive: false });
+    c.addEventListener('touchmove',  e => { e.preventDefault(); this._move(e.touches[0]);  }, { passive: false });
+    c.addEventListener('touchend',   () => { this.isDrawing = false; });
+    c.addEventListener('mousedown',  e => this._start(e));
+    c.addEventListener('mousemove',  e => { if (this.isDrawing) this._move(e); });
+    c.addEventListener('mouseup',    () => { this.isDrawing = false; });
+    c.addEventListener('mouseleave', () => { this.isDrawing = false; });
+  },
+
+  _pos(e) {
+    const r  = this.canvas.getBoundingClientRect();
+    return {
+      x: (e.clientX - r.left) * (this._size / r.width),
+      y: (e.clientY - r.top)  * (this._size / r.height),
+    };
+  },
+
+  _start(e) {
+    this.isDrawing = true;
+    this.hasStrokes = true;
+    document.getElementById('canvas-hint-overlay').style.display = 'none';
+    document.getElementById('write-score').innerHTML = '';
+    const p = this._pos(e);
+    this.lastX = p.x; this.lastY = p.y;
+    this.ctx.beginPath();
+    this.ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2);
+    this.ctx.fillStyle = 'rgba(255,107,44,0.92)';
+    this.ctx.fill();
+  },
+
+  _move(e) {
+    if (!this.isDrawing) return;
+    const p = this._pos(e);
+    this.ctx.beginPath();
+    this.ctx.moveTo(this.lastX, this.lastY);
+    this.ctx.lineTo(p.x, p.y);
+    this.ctx.strokeStyle = 'rgba(255,107,44,0.92)';
+    this.ctx.lineWidth   = 7;
+    this.ctx.lineCap     = 'round';
+    this.ctx.lineJoin    = 'round';
+    this.ctx.stroke();
+    this.lastX = p.x; this.lastY = p.y;
+  },
+
+  loadLetter(idx) {
+    this.letterIdx  = idx;
+    this.hasStrokes = false;
+    const letter = ALPHABET[idx];
+    const s = this._size;
+    const fontSize = Math.round(s * 0.62);
+
+    // Update meta
+    document.getElementById('write-letter-display').textContent = letter.letter;
+    document.getElementById('write-meta').innerHTML =
+      `<span class="wm-rom">${letter.roman}</span>` +
+      `<span class="wm-hint">${letter.hint}</span>`;
+    document.getElementById('write-score').innerHTML = '';
+    document.getElementById('canvas-hint-overlay').style.display = 'flex';
+
+    const speakBtn = document.getElementById('write-speak-btn');
+    speakBtn.onclick = () => TTS.play(`letter_${idx}`, speakBtn);
+
+    // Draw ghost on user canvas
+    this.ctx.clearRect(0, 0, s, s);
+    this.ctx.font          = `${fontSize}px serif`;
+    this.ctx.textAlign     = 'center';
+    this.ctx.textBaseline  = 'middle';
+    this.ctx.fillStyle     = 'rgba(255,255,255,0.10)';
+    this.ctx.fillText(letter.letter, s / 2, s / 2);
+
+    // Draw reference on hidden canvas (for scoring)
+    this.refCtx.clearRect(0, 0, s, s);
+    this.refCtx.font         = `${fontSize}px serif`;
+    this.refCtx.textAlign    = 'center';
+    this.refCtx.textBaseline = 'middle';
+    this.refCtx.fillStyle    = '#ffffff';
+    this.refCtx.fillText(letter.letter, s / 2, s / 2);
+  },
+
+  clear() {
+    this.hasStrokes = false;
+    const s = this._size;
+    const letter = ALPHABET[this.letterIdx];
+    const fontSize = Math.round(s * 0.62);
+    this.ctx.clearRect(0, 0, s, s);
+    this.ctx.font         = `${fontSize}px serif`;
+    this.ctx.textAlign    = 'center';
+    this.ctx.textBaseline = 'middle';
+    this.ctx.fillStyle    = 'rgba(255,255,255,0.10)';
+    this.ctx.fillText(letter.letter, s / 2, s / 2);
+    document.getElementById('write-score').innerHTML = '';
+    document.getElementById('canvas-hint-overlay').style.display = 'flex';
+  },
+
+  check() {
+    if (!this.hasStrokes) { showToast('Сначала нарисуйте букву!'); return; }
+    const s   = this._size;
+    const dpr = this._dpr;
+    const W   = s * dpr, H = s * dpr;
+
+    const userPx = this.ctx.getImageData(0, 0, W, H).data;
+    const refPx  = this.refCtx.getImageData(0, 0, W, H).data;
+
+    const R = 10 * dpr;  // tolerance radius in raw pixels
+    let refTotal = 0, hit = 0;
+
+    for (let i = 0; i < refPx.length; i += 4) {
+      if (refPx[i + 3] < 40) continue;
+      refTotal++;
+      const x = (i >> 2) % W, y = (i >> 2) / W | 0;
+      outer: for (let dy = -R; dy <= R; dy++) {
+        for (let dx = -R; dx <= R; dx++) {
+          if (dx * dx + dy * dy > R * R) continue;
+          const nx = x + dx, ny = y + dy;
+          if (nx < 0 || nx >= W || ny < 0 || ny >= H) continue;
+          if (userPx[((ny * W + nx) << 2) + 3] > 40) { hit++; break outer; }
+        }
+      }
+    }
+
+    const score = refTotal ? Math.round((hit / refTotal) * 100) : 0;
+    this._showScore(score);
+  },
+
+  _showScore(score) {
+    let emoji, msg, color;
+    if      (score >= 75) { emoji = '🎉'; msg = 'Отлично!';      color = 'var(--green)'; }
+    else if (score >= 45) { emoji = '👍'; msg = 'Хорошо!';       color = 'var(--a2)'; }
+    else if (score >= 20) { emoji = '💪'; msg = 'Ещё раз!';      color = 'var(--red)'; }
+    else                  { emoji = '✏️'; msg = 'Попробуй снова'; color = 'var(--text3)'; }
+
+    document.getElementById('write-score').innerHTML = `
+      <div class="score-num" style="color:${color}">${emoji} ${score}%</div>
+      <div class="score-msg">${msg}</div>
+    `;
+
+    if (score >= 75) {
+      State.alphabet.learned.add(this.letterIdx);
+      saveProgress();
+      renderAlphabetGrid();
+    }
+  },
+};
+
+function writingPrev() {
+  const idx = (Drawing.letterIdx - 1 + ALPHABET.length) % ALPHABET.length;
+  Drawing.loadLetter(idx);
+}
+
+function writingNext() {
+  const idx = (Drawing.letterIdx + 1) % ALPHABET.length;
+  Drawing.loadLetter(idx);
+}
+
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', () => {
   initNav();
@@ -222,9 +413,11 @@ function setupModeToggle() {
       document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       const mode = btn.dataset.mode;
-      document.getElementById('browse-panel').style.display = mode === 'browse' ? 'block' : 'none';
-      document.getElementById('quiz-panel').style.display = mode === 'quiz' ? 'block' : 'none';
-      if (mode === 'quiz') startQuiz();
+      document.getElementById('browse-panel').style.display  = mode === 'browse'  ? 'block' : 'none';
+      document.getElementById('quiz-panel').style.display    = mode === 'quiz'    ? 'block' : 'none';
+      document.getElementById('writing-panel').style.display = mode === 'writing' ? 'block' : 'none';
+      if (mode === 'quiz')    startQuiz();
+      if (mode === 'writing') { Drawing.init(); Drawing.loadLetter(State.alphabet.currentIdx); }
     });
   });
 }

@@ -863,6 +863,116 @@ body {
 }
 .modal-skip:hover { color: var(--text2); }
 
+/* ── WRITING TRAINER ── */
+.write-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.write-nav-btn {
+  flex: 0 0 44px !important;
+  height: 44px;
+  padding: 0 !important;
+}
+
+.write-letter-display {
+  font-size: 72px;
+  line-height: 1;
+  flex: 1;
+  text-align: center;
+  background: var(--grad);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 16px var(--glow));
+}
+
+.write-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.wm-rom {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.wm-hint {
+  font-size: 12px;
+  color: var(--text3);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+}
+
+.canvas-wrap {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.02);
+  margin-bottom: 12px;
+  touch-action: none;
+}
+
+#draw-canvas {
+  display: block;
+  width: 100%;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.canvas-hint-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--text3);
+  pointer-events: none;
+  background: transparent;
+  border-radius: var(--radius);
+}
+
+.write-score {
+  text-align: center;
+  min-height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  margin-bottom: 10px;
+}
+
+.score-num {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.score-msg {
+  font-size: 13px;
+  color: var(--text3);
+}
+
+.write-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar { width: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
