@@ -110,6 +110,7 @@ const PHRASE_PREFIX = {
 // ── STATE ──
 const State = {
   currentSection: 'alphabet',
+  lang: localStorage.getItem('gla_lang') || 'ru',
   alphabet: {
     mode: 'browse',   // 'browse' | 'quiz'
     currentIdx: 0,
@@ -131,6 +132,55 @@ const State = {
   },
   phrases: {},
 };
+
+// ── I18N HELPERS ──
+function T(key)          { return I18N[State.lang][key]; }
+function Td(item, field) {
+  if (State.lang === 'en') return item[field + '_en'] || item[field];
+  return item[field];
+}
+function catLabel(cat) {
+  if (State.lang === 'en') return CATEGORY_EN[cat] || cat;
+  return cat;
+}
+
+function setLang(lang) {
+  State.lang = lang;
+  localStorage.setItem('gla_lang', lang);
+  document.getElementById('lang-ru').classList.toggle('active', lang === 'ru');
+  document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+  applyI18n();
+  renderAlphabet();
+  renderPhrases();
+  renderFlashcards();
+  renderTips();
+}
+
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    const val = I18N[State.lang][key];
+    if (val !== undefined && typeof val === 'string') el.textContent = val;
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.dataset.i18nPlaceholder;
+    const val = I18N[State.lang][key];
+    if (val) el.placeholder = val;
+  });
+  // Progress label
+  const learned = State.alphabet.learned.size;
+  const pct = Math.round((learned / ALPHABET.length) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent =
+    T('progress_label')(learned, ALPHABET.length);
+  // Mode buttons
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    const mode = btn.dataset.mode;
+    if (mode === 'browse') btn.textContent = T('mode_browse');
+    if (mode === 'quiz')   btn.textContent = T('mode_quiz');
+    if (mode === 'writing') btn.textContent = T('mode_writing');
+  });
+}
 
 // ── WRITING TRAINER ──
 const Drawing = {
@@ -224,11 +274,11 @@ const Drawing = {
     document.getElementById('write-letter-display').textContent = letter.letter;
     document.getElementById('write-meta').innerHTML =
       `<span class="wm-rom">${letter.roman}</span>` +
-      `<span class="wm-hint">${letter.hint}</span>`;
+      `<span class="wm-hint">${Td(letter, 'hint')}</span>`;
     document.getElementById('write-score').innerHTML = '';
     document.getElementById('canvas-hint-overlay').style.display = 'flex';
     const btn = document.getElementById('write-check-btn');
-    btn.textContent = '✓ Проверить';
+    btn.textContent = T('write_check');
     btn.className = 'btn btn-primary';
     btn.onclick = () => Drawing.check();
 
@@ -267,13 +317,13 @@ const Drawing = {
     document.getElementById('write-score').innerHTML = '';
     document.getElementById('canvas-hint-overlay').style.display = 'flex';
     const btn = document.getElementById('write-check-btn');
-    btn.textContent = '✓ Проверить';
+    btn.textContent = T('write_check');
     btn.className = 'btn btn-primary';
     btn.onclick = () => Drawing.check();
   },
 
   check() {
-    if (!this.hasStrokes) { showToast('Сначала нарисуйте букву!'); return; }
+    if (!this.hasStrokes) { showToast(T('toast_draw_first')); return; }
     const s   = this._size;
     const dpr = this._dpr;
     const W   = s * dpr, H = s * dpr;
@@ -304,17 +354,17 @@ const Drawing = {
 
   _showScore(score) {
     let emoji, msg, color;
-    if      (score >= 75) { emoji = '🎉'; msg = 'Отлично!';      color = 'var(--green)'; }
-    else if (score >= 45) { emoji = '👍'; msg = 'Хорошо!';       color = 'var(--a2)'; }
-    else if (score >= 20) { emoji = '💪'; msg = 'Ещё раз!';      color = 'var(--red)'; }
-    else                  { emoji = '✏️'; msg = 'Попробуй снова'; color = 'var(--text3)'; }
+    if      (score >= 75) { emoji = '🎉'; msg = T('score_great'); color = 'var(--green)'; }
+    else if (score >= 45) { emoji = '👍'; msg = T('score_good');  color = 'var(--a2)'; }
+    else if (score >= 20) { emoji = '💪'; msg = T('score_retry'); color = 'var(--red)'; }
+    else                  { emoji = '✏️'; msg = T('score_try');   color = 'var(--text3)'; }
 
     document.getElementById('write-score').innerHTML = `
       <div class="score-num" style="color:${color}">${emoji} ${score}%</div>
       <div class="score-msg">${msg}</div>
     `;
     const btn = document.getElementById('write-check-btn');
-    btn.textContent = 'Следующая →';
+    btn.textContent = T('write_next');
     btn.className = 'btn btn-success';
     btn.onclick = () => writingNext();
 
@@ -358,32 +408,36 @@ function filterPhrases(query) {
     const matched = category.items.filter((item, i) =>
       item.ka.toLowerCase().includes(q) ||
       item.ru.toLowerCase().includes(q) ||
+      (item.en && item.en.toLowerCase().includes(q)) ||
       item.rom.toLowerCase().includes(q)
     );
     if (!matched.length) return;
     totalFound += matched.length;
 
+    const catTitle = State.lang === 'en' ? (category.title_en || category.title) : category.title;
     const div = document.createElement('div');
     div.className = 'phrase-category open';
     div.innerHTML = `
       <div class="phrase-category-header">
         <span class="phrase-category-icon">${category.icon}</span>
-        <span class="phrase-category-title">${category.title}</span>
-        <span class="phrase-category-count">${matched.length} фраз</span>
+        <span class="phrase-category-title">${catTitle}</span>
+        <span class="phrase-category-count">${matched.length}</span>
         <span class="phrase-chevron">▼</span>
       </div>
       <div class="phrase-list">
         ${matched.map(item => {
           const i = category.items.indexOf(item);
+          const translation = State.lang === 'en' ? (item.en || item.ru) : item.ru;
+          const note = State.lang === 'en' ? (item.note_en || item.note) : item.note;
           return `
           <div class="phrase-item">
             <div class="phrase-ka">${item.ka}</div>
             <div class="phrase-rom">${item.rom}</div>
-            <div class="phrase-ru">${item.ru}</div>
-            ${item.note ? `<div class="phrase-note">ℹ️ ${item.note}</div>` : ''}
+            <div class="phrase-ru">${translation}</div>
+            ${note ? `<div class="phrase-note">ℹ️ ${note}</div>` : ''}
             <div class="phrase-actions">
               <button class="speak-btn speak-btn-phrase"
-                onclick="TTS.play('phrase_${prefix}${i}', this)">🔊 Слушать</button>
+                onclick="TTS.play('phrase_${prefix}${i}', this)">${T('ph_listen')}</button>
               <button class="phrase-copy-btn"
                 onclick="copyPhrase(this, '${escHtml(item.ka)}')">📋</button>
             </div>
@@ -398,7 +452,7 @@ function filterPhrases(query) {
   });
 
   if (!totalFound) {
-    container.innerHTML = `<div class="phrase-no-results">Ничего не найдено по запросу «${query}»</div>`;
+    container.innerHTML = `<div class="phrase-no-results">${T('ph_no_results')(query)}</div>`;
   }
 }
 
@@ -411,6 +465,11 @@ document.addEventListener('DOMContentLoaded', () => {
   renderTips();
   showSection('alphabet');
   updateProgress();
+  applyI18n();
+
+  // Init lang buttons
+  document.getElementById('lang-ru').classList.toggle('active', State.lang === 'ru');
+  document.getElementById('lang-en').classList.toggle('active', State.lang === 'en');
 
   // Phrase search
   document.getElementById('phrase-search').addEventListener('input', e => {
@@ -452,7 +511,7 @@ function updateProgress() {
   const learned = State.alphabet.learned.size;
   const pct = Math.round((learned / total) * 100);
   document.getElementById('progress-fill').style.width = pct + '%';
-  document.getElementById('progress-label').textContent = `${learned}/${total} букв`;
+  document.getElementById('progress-label').textContent = T('progress_label')(learned, total);
 }
 
 function saveProgress() {
@@ -496,12 +555,12 @@ function renderLetterDetail(idx) {
       onclick="TTS.play('letter_${idx}', this)">🔊</button>
     <div class="letter-detail-rom">${item.roman}</div>
     <div class="letter-detail-ru">${item.ru}</div>
-    <div class="letter-detail-hint">💡 ${item.hint}</div>
+    <div class="letter-detail-hint">💡 ${Td(item, 'hint')}</div>
     <div class="letter-detail-example">✦ ${item.example}</div>
     <div style="margin-top:8px; display:flex; gap:8px;">
       <button class="btn ${isLearned ? 'btn-secondary' : 'btn-success'}" style="padding:8px 20px;flex:0 0 auto;"
         onclick="toggleLearned(${idx})">
-        ${isLearned ? '✓ Выучена' : '+ Выучил!'}
+        ${isLearned ? T('learned_done') : T('learned_btn')}
       </button>
     </div>
   `;
@@ -512,14 +571,17 @@ function toggleLearned(idx) {
     State.alphabet.learned.delete(idx);
   } else {
     State.alphabet.learned.add(idx);
-    showToast('Буква запомнена! 🎉');
+    showToast(T('toast_learned'));
   }
   saveProgress();
   renderAlphabetGrid();
   renderLetterDetail(idx);
 }
 
+let _alphaNavAttached = false;
 function setupAlphabetNav() {
+  if (_alphaNavAttached) return;
+  _alphaNavAttached = true;
   document.getElementById('btn-prev').addEventListener('click', () => {
     State.alphabet.currentIdx = (State.alphabet.currentIdx - 1 + ALPHABET.length) % ALPHABET.length;
     renderAlphabetGrid();
@@ -532,7 +594,10 @@ function setupAlphabetNav() {
   });
 }
 
+let _modeToggleAttached = false;
 function setupModeToggle() {
+  if (_modeToggleAttached) return;
+  _modeToggleAttached = true;
   document.querySelectorAll('.mode-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
@@ -581,8 +646,8 @@ function nextQuestion() {
     <div class="quiz-question">
       <div class="quiz-letter">${correct.letter}</div>
       <button class="speak-btn speak-btn-quiz"
-        onclick="TTS.play('letter_${correctIdx}', this)">🔊 Слушать</button>
-      <div class="quiz-prompt">Как читается эта буква?</div>
+        onclick="TTS.play('letter_${correctIdx}', this)">${T('quiz_listen')}</button>
+      <div class="quiz-prompt">${T('quiz_prompt')}</div>
     </div>
     <div class="quiz-options">
       ${allOptions.map(opt => `
@@ -612,7 +677,7 @@ function handleQuizAnswer(btn, correct) {
     haptic('success');
     playQuizSound(true);
     if (State.quiz.streak > 0 && State.quiz.streak % 5 === 0) {
-      showToast(`🔥 ${State.quiz.streak} подряд! Огонь!`);
+      showToast(T('toast_streak')(State.quiz.streak));
     }
   } else {
     btn.classList.add('wrong');
@@ -640,22 +705,22 @@ function showQuizResult() {
   const { score, wrong, total } = State.quiz;
   const acc = Math.round((score / total) * 100);
   let emoji, grade;
-  if (acc >= 90)      { emoji = '🏆'; grade = 'Блестяще!'; }
-  else if (acc >= 70) { emoji = '🎯'; grade = 'Хорошо!'; }
-  else if (acc >= 50) { emoji = '💪'; grade = 'Неплохо!'; }
-  else                { emoji = '📚'; grade = 'Продолжай учить!'; }
+  if (acc >= 90)      { emoji = '🏆'; grade = T('res_brilliant'); }
+  else if (acc >= 70) { emoji = '🎯'; grade = T('res_good'); }
+  else if (acc >= 50) { emoji = '💪'; grade = T('res_ok'); }
+  else                { emoji = '📚'; grade = T('res_keep'); }
 
   document.getElementById('quiz-wrap').innerHTML = `
     <div class="quiz-result">
       <div class="quiz-result-emoji">${emoji}</div>
       <div class="quiz-result-grade">${grade}</div>
       <div class="quiz-result-stats">
-        <div class="qrs-item"><span class="qrs-num green">${score}</span><span class="qrs-label">верно</span></div>
-        <div class="qrs-item"><span class="qrs-num red">${wrong}</span><span class="qrs-label">ошибок</span></div>
-        <div class="qrs-item"><span class="qrs-num" style="color:var(--a2)">${acc}%</span><span class="qrs-label">точность</span></div>
+        <div class="qrs-item"><span class="qrs-num green">${score}</span><span class="qrs-label">${T('res_correct')}</span></div>
+        <div class="qrs-item"><span class="qrs-num red">${wrong}</span><span class="qrs-label">${T('res_wrong')}</span></div>
+        <div class="qrs-item"><span class="qrs-num" style="color:var(--a2)">${acc}%</span><span class="qrs-label">${T('res_accuracy')}</span></div>
       </div>
       <button class="btn btn-primary" style="width:100%;margin-top:20px" onclick="startQuiz()">
-        🔄 Ещё раунд
+        ${T('quiz_another')}
       </button>
     </div>
   `;
@@ -669,19 +734,19 @@ function renderQuizStats() {
   el.innerHTML = `
     <div class="quiz-stat">
       <div class="quiz-stat-num green">${State.quiz.score}</div>
-      <div class="quiz-stat-label">Верно</div>
+      <div class="quiz-stat-label">${T('quiz_correct')}</div>
     </div>
     <div class="quiz-stat">
       <div class="quiz-stat-num red">${State.quiz.wrong}</div>
-      <div class="quiz-stat-label">Ошибки</div>
+      <div class="quiz-stat-label">${T('quiz_wrong')}</div>
     </div>
     <div class="quiz-stat">
       <div class="quiz-stat-num blue">${State.quiz.streak}</div>
-      <div class="quiz-stat-label">Серия</div>
+      <div class="quiz-stat-label">${T('quiz_streak')}</div>
     </div>
     <div class="quiz-stat">
       <div class="quiz-stat-num" style="color:var(--gold)">${acc}%</div>
-      <div class="quiz-stat-label">Точность</div>
+      <div class="quiz-stat-label">${T('quiz_accuracy')}</div>
     </div>
   `;
 }
@@ -695,28 +760,32 @@ function renderPhrases() {
     const prefix = PHRASE_PREFIX[key] || key[0];
     const div = document.createElement('div');
     div.className = 'phrase-category';
+    const catTitle = State.lang === 'en' ? (category.title_en || category.title) : category.title;
     div.innerHTML = `
       <div class="phrase-category-header">
         <span class="phrase-category-icon">${category.icon}</span>
-        <span class="phrase-category-title">${category.title}</span>
-        <span class="phrase-category-count">${category.items.length} фраз</span>
+        <span class="phrase-category-title">${catTitle}</span>
+        <span class="phrase-category-count">${category.items.length}</span>
         <span class="phrase-chevron">▼</span>
       </div>
       <div class="phrase-list">
-        ${category.items.map((item, i) => `
+        ${category.items.map((item, i) => {
+          const translation = State.lang === 'en' ? (item.en || item.ru) : item.ru;
+          const note = State.lang === 'en' ? (item.note_en || item.note) : item.note;
+          return `
           <div class="phrase-item">
             <div class="phrase-ka">${item.ka}</div>
             <div class="phrase-rom">${item.rom}</div>
-            <div class="phrase-ru">${item.ru}</div>
-            ${item.note ? `<div class="phrase-note">ℹ️ ${item.note}</div>` : ''}
+            <div class="phrase-ru">${translation}</div>
+            ${note ? `<div class="phrase-note">ℹ️ ${note}</div>` : ''}
             <div class="phrase-actions">
               <button class="speak-btn speak-btn-phrase"
-                onclick="TTS.play('phrase_${prefix}${i}', this)">🔊 Слушать</button>
+                onclick="TTS.play('phrase_${prefix}${i}', this)">${T('ph_listen')}</button>
               <button class="phrase-copy-btn"
                 onclick="copyPhrase(this, '${escHtml(item.ka)}')">📋</button>
             </div>
-          </div>
-        `).join('')}
+          </div>`;
+        }).join('')}
       </div>
     `;
     div.querySelector('.phrase-category-header').addEventListener('click', () => {
@@ -734,22 +803,30 @@ function copyPhrase(btn, text) {
   if (navigator.clipboard) {
     navigator.clipboard.writeText(text).then(() => {
       btn.textContent = '✓';
-      showToast('Скопировано в буфер 📋');
+      showToast(T('toast_copied'));
       setTimeout(() => { btn.textContent = '📋'; }, 2000);
     });
   }
 }
 
 // ── FLASHCARDS ──
+let _fcListenersAttached = false;
 function renderFlashcards() {
-  buildDeck('all');
+  buildDeck(State.flashcards.filter);
   renderFilterBtns();
   renderFC();
 
-  document.getElementById('fc-flip').addEventListener('click', flipCard);
-  document.getElementById('fc-next').addEventListener('click', nextCard);
-  document.getElementById('fc-prev').addEventListener('click', prevCard);
-  document.getElementById('fc-card-wrap').addEventListener('click', flipCard);
+  document.getElementById('fc-flip').textContent = T('fc_flip');
+  document.getElementById('fc-next').textContent = T('fc_next');
+  document.getElementById('fc-prev').textContent = T('fc_prev');
+
+  if (!_fcListenersAttached) {
+    document.getElementById('fc-flip').addEventListener('click', flipCard);
+    document.getElementById('fc-next').addEventListener('click', nextCard);
+    document.getElementById('fc-prev').addEventListener('click', prevCard);
+    document.getElementById('fc-card-wrap').addEventListener('click', flipCard);
+    _fcListenersAttached = true;
+  }
 }
 
 function buildDeck(filter) {
@@ -766,8 +843,8 @@ function renderFilterBtns() {
   const container = document.getElementById('fc-filters');
   const categories = ['all', ...new Set(FLASHCARDS.map(c => c.category))];
   container.innerHTML = categories.map(cat => `
-    <button class="filter-btn ${cat === 'all' ? 'active' : ''}"
-      data-cat="${cat}">${cat === 'all' ? 'Все' : cat}</button>
+    <button class="filter-btn ${cat === State.flashcards.filter ? 'active' : ''}"
+      data-cat="${cat}">${cat === 'all' ? T('toast_cat_all') : catLabel(cat)}</button>
   `).join('');
 
   container.querySelectorAll('.filter-btn').forEach(btn => {
@@ -788,22 +865,24 @@ function renderFC() {
   const cardEl = document.getElementById('fc-card');
   cardEl.classList.remove('flipped');
 
+  const categoryDisplay = catLabel(card.category);
   cardEl.querySelector('.fc-front').innerHTML = `
-    <div class="fc-category-badge">${card.category}</div>
+    <div class="fc-category-badge">${categoryDisplay}</div>
     <div class="fc-word-ka">${card.ka}</div>
     <button class="speak-btn speak-btn-fc"
       onclick="event.stopPropagation(); TTS.play('word_${card._idx}', this)">🔊</button>
-    <div class="fc-hint">нажмите чтобы перевернуть</div>
+    <div class="fc-hint">${T('fc_hint')}</div>
   `;
 
   const isLearned = State.flashcards.learned.has(card._idx);
+  const backTranslation = State.lang === 'en' ? (card.en || card.ru) : card.ru;
   cardEl.querySelector('.fc-back').innerHTML = `
-    <div class="fc-category-badge">${card.category}</div>
-    <div class="fc-word-ru">${card.ru}</div>
+    <div class="fc-category-badge">${categoryDisplay}</div>
+    <div class="fc-word-ru">${backTranslation}</div>
     <div class="fc-word-rom">${card.rom}</div>
     <button class="fc-learned-btn ${isLearned ? 'is-learned' : ''}"
       onclick="event.stopPropagation(); toggleFCLearned(${card._idx})">
-      ${isLearned ? '✓ Выучено' : '+ Выучил!'}
+      ${isLearned ? T('fc_learned_done') : T('fc_learned')}
     </button>
   `;
 
@@ -820,7 +899,7 @@ function toggleFCLearned(wordIdx) {
   } else {
     fc.learned.add(wordIdx);
     haptic('success');
-    showToast('Слово запомнено! 🎉');
+    showToast(T('toast_fc_learned'));
   }
   saveFCProgress();
   renderFC();
@@ -842,7 +921,7 @@ function nextCard() {
   State.flashcards.idx = (State.flashcards.idx + 1) % deck.length;
   if (State.flashcards.seen.size === deck.length) {
     State.flashcards.seen.clear();
-    showToast('Колода пройдена! 🎓 Начинаем снова');
+    showToast(T('toast_deck_done'));
     buildDeck(State.flashcards.filter);
   }
   renderFC();
@@ -861,9 +940,9 @@ function renderTips() {
     <div class="tip-card" style="background: linear-gradient(135deg, var(--card), var(--card2)); --tip-color: ${tip.color};">
       <div class="tip-header">
         <span class="tip-icon">${tip.icon}</span>
-        <span class="tip-title">${tip.title}</span>
+        <span class="tip-title">${Td(tip, 'title')}</span>
       </div>
-      <div class="tip-text">${tip.text}</div>
+      <div class="tip-text">${Td(tip, 'text')}</div>
     </div>
   `).join('');
 }

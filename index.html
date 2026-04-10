@@ -23,8 +23,12 @@
     <div class="flag-icon">🇬🇪</div>
     <div class="header-title">
       <h1>ქართული — Грузинский</h1>
-      <p>Самоучитель для туристов из СНГ</p>
+      <p data-i18n="header_sub">Самоучитель для туристов из СНГ</p>
     </div>
+  </div>
+  <div class="lang-bar">
+    <button class="lang-btn active" id="lang-ru" onclick="setLang('ru')">RU</button>
+    <button class="lang-btn" id="lang-en" onclick="setLang('en')">EN</button>
   </div>
   <div class="progress-bar-wrap">
     <div class="progress-bar">
@@ -59,8 +63,8 @@
 
   <!-- ── ALPHABET ── -->
   <section id="sec-alphabet" class="section active">
-    <div class="section-title">Алфавит Мхедрули</div>
-    <div class="section-sub">33 буквы — уникальное письмо с 5 века н.э.</div>
+    <div class="section-title" data-i18n="sec_alpha_title">Алфавит Мхедрули</div>
+    <div class="section-sub" data-i18n="sec_alpha_sub">33 буквы — уникальное письмо с 5 века н.э.</div>
 
     <!-- Mode Toggle -->
     <div class="mode-toggle">
@@ -144,7 +148,7 @@
         <div style="text-align:center; padding:30px; color:var(--text3)">Загрузка...</div>
       </div>
 
-      <button class="btn btn-secondary" onclick="startQuiz()" style="width:100%;margin-top:8px">
+      <button class="btn btn-secondary" onclick="startQuiz()" style="width:100%;margin-top:8px" data-i18n="quiz_restart">
         🔄 Начать заново
       </button>
     </div>
@@ -152,11 +156,12 @@
 
   <!-- ── PHRASES ── -->
   <section id="sec-phrases" class="section">
-    <div class="section-title">Разговорник</div>
-    <div class="section-sub">Нажмите на фразу, чтобы скопировать — отправьте в чат!</div>
+    <div class="section-title" data-i18n="sec_ph_title">Разговорник</div>
+    <div class="section-sub" data-i18n="sec_ph_sub">Нажмите на фразу, чтобы скопировать — отправьте в чат!</div>
     <div class="phrase-search-wrap">
       <span class="phrase-search-icon">🔍</span>
       <input class="phrase-search" id="phrase-search" type="search"
+        data-i18n-placeholder="ph_search_ph"
         placeholder="Поиск: вода, спасибо, такси…">
     </div>
     <div id="phrases-container"></div>
@@ -173,8 +178,8 @@
 
   <!-- ── FLASHCARDS ── -->
   <section id="sec-flashcards" class="section">
-    <div class="section-title">Карточки</div>
-    <div class="section-sub">Нажмите на карточку, чтобы перевернуть</div>
+    <div class="section-title" data-i18n="sec_fc_title">Карточки</div>
+    <div class="section-sub" data-i18n="sec_fc_sub">Нажмите на карточку, чтобы перевернуть</div>
 
     <!-- Filter buttons -->
     <div class="fc-controls" id="fc-filters"></div>
@@ -208,8 +213,8 @@
 
   <!-- ── TIPS ── -->
   <section id="sec-tips" class="section">
-    <div class="section-title">Советы туристу</div>
-    <div class="section-sub">Культура, традиции и лайфхаки для путешественников в Грузии</div>
+    <div class="section-title" data-i18n="sec_tips_title">Советы туристу</div>
+    <div class="section-sub" data-i18n="sec_tips_sub">Культура, традиции и лайфхаки для путешественников в Грузии</div>
     <div id="tips-container"></div>
 
     <!-- Bottom CTA -->
@@ -236,8 +241,8 @@
 <div class="onboarding-overlay" id="onboarding-overlay">
   <div class="onboarding-box">
     <div class="onb-flag">🇬🇪</div>
-    <div class="onb-title">Грузинский для туриста</div>
-    <div class="onb-sub">Выучи алфавит и базовые фразы<br>за одно путешествие</div>
+    <div class="onb-title" data-i18n="onb_title">Грузинский для туриста</div>
+    <div class="onb-sub" data-i18n="onb_sub">Выучи алфавит и базовые фразы<br>за одно путешествие</div>
     <div class="onb-features">
       <div class="onb-feature">
         <span class="onb-feature-icon">🔤</span>
@@ -252,7 +257,7 @@
         <div><strong>Карточки</strong>44 слова — учи по темам, отмечай выученные</div>
       </div>
     </div>
-    <button class="onb-btn" onclick="closeOnboarding()">Поехали! 🇬🇪</button>
+    <button class="onb-btn" onclick="closeOnboarding()" data-i18n="onb_btn">Поехали! 🇬🇪</button>
   </div>
 </div>
 
@@ -260,16 +265,17 @@
 <div class="modal-overlay" id="audio-modal" onclick="closeAudioModal(event)">
   <div class="modal">
     <div class="modal-icon">🎙️</div>
-    <div class="modal-title">Озвучка в бета-версии</div>
+    <div class="modal-title" data-i18n="audio_title">Озвучка в бета-версии</div>
     <div class="modal-text">
       Произношение сгенерировано нейросетью и может быть <strong>не на 100% точным</strong> для некоторых сложных грузинских звуков.<br><br>
       Всегда сверяйтесь с <span class="modal-hint">транскрипцией</span> под словом — она надёжнее.
     </div>
-    <button class="modal-btn" onclick="confirmAudioModal()">Понятно, слушать!</button>
-    <div class="modal-skip" onclick="closeAudioModal()">Не показывать снова</div>
+    <button class="modal-btn" onclick="confirmAudioModal()" data-i18n="audio_btn">Понятно, слушать!</button>
+    <div class="modal-skip" onclick="closeAudioModal()" data-i18n="audio_skip">Не показывать снова</div>
   </div>
 </div>
 
+<script src="i18n.js"></script>
 <script src="data.js"></script>
 <script src="app.js"></script>
 </body>
