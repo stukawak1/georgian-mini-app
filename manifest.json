@@ -1,0 +1,18 @@
+{
+  "name": "ქართული — Грузинский для туриста",
+  "short_name": "ქართული",
+  "description": "Самоучитель грузинского языка для туристов из СНГ",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#080808",
+  "background_color": "#080808",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
