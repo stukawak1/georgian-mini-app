@@ -44,11 +44,19 @@ const PHRASES = {
       { ka: 'გამარჯობა', rom: 'gamarjoba', ru: 'Здравствуйте / Привет', note: 'Самое универсальное приветствие' },
       { ka: 'გამარჯობათ', rom: 'gamarjobat', ru: 'Здравствуйте (вежливо)', note: 'Для старших и незнакомых' },
       { ka: 'სალამი', rom: 'salami', ru: 'Привет (неформально)', note: 'Среди друзей' },
+      { ka: 'დილა მშვიდობისა', rom: 'dila mshvidobisa', ru: 'Доброе утро', note: '' },
+      { ka: 'საღამო მშვიდობისა', rom: 'saghamo mshvidobisa', ru: 'Добрый вечер', note: '' },
+      { ka: 'ღამე მშვიდობისა', rom: 'ghame mshvidobisa', ru: 'Спокойной ночи', note: '' },
       { ka: 'ნახვამდის', rom: 'nakhvamdis', ru: 'До свидания', note: '' },
       { ka: 'კარგად იყავი', rom: 'kargad iq\'avi', ru: 'Будь здоров/а', note: 'Прощание' },
       { ka: 'როგორ ხარ?', rom: 'rogor khar?', ru: 'Как дела?', note: '' },
       { ka: 'კარგად, გმადლობ', rom: 'kargad, gmadlob', ru: 'Хорошо, спасибо', note: 'Ответ на «как дела»' },
       { ka: 'სახელი მქვია...', rom: 'sakheli mqvia...', ru: 'Меня зовут...', note: 'Вставьте своё имя' },
+      { ka: 'სად ხარ?', rom: 'sad khar?', ru: 'Где ты?', note: '' },
+      { ka: 'რუსულად ლაპარაკობ?', rom: 'rusulad laparakob?', ru: 'Говоришь по-русски?', note: '' },
+      { ka: 'ვერ გავიგე', rom: 'ver gavige', ru: 'Не понял/а', note: '' },
+      { ka: 'ნელა, გთხოვთ', rom: 'nela, gtkhovt', ru: 'Говорите медленнее, пожалуйста', note: '' },
+      { ka: 'გაიმეორეთ, გთხოვთ', rom: 'gaimeoreth, gtkhovt', ru: 'Повторите, пожалуйста', note: '' },
     ]
   },
   polite: {
@@ -63,6 +71,12 @@ const PHRASES = {
       { ka: 'არა', rom: 'ara', ru: 'Нет', note: '' },
       { ka: 'გთხოვთ', rom: 'gtkhovt', ru: 'Пожалуйста (просьба)', note: 'При обращении с просьбой' },
       { ka: 'არაფერს', rom: 'arapars', ru: 'Пожалуйста (ответ)', note: 'Ответ на «спасибо»' },
+      { ka: 'რა თქმა უნდა', rom: 'ra tkma unda', ru: 'Конечно', note: '' },
+      { ka: 'პრობლემა არ არის', rom: 'p\'roblema ar aris', ru: 'Нет проблем', note: '' },
+      { ka: 'გავიგე', rom: 'gavige', ru: 'Понял/а', note: '' },
+      { ka: 'არ ვიცი', rom: 'ar vitsi', ru: 'Не знаю', note: '' },
+      { ka: 'მოიცა', rom: 'moitsa', ru: 'Подождите', note: '' },
+      { ka: 'შემოდით, გთხოვთ', rom: 'shemodith, gtkhovt', ru: 'Входите, пожалуйста', note: '' },
     ]
   },
   food: {
@@ -71,6 +85,14 @@ const PHRASES = {
     items: [
       { ka: 'ხინკალი', rom: 'khinkali', ru: 'Хинкали', note: 'Грузинские пельмени — must try!' },
       { ka: 'ხაჭაპური', rom: 'khachapuri', ru: 'Хачапури', note: 'Сырная лепёшка' },
+      { ka: 'მწვადი', rom: 'mtsvadi', ru: 'Мцвади (шашлык)', note: 'Грузинский шашлык на виноградной лозе' },
+      { ka: 'ლობიანი', rom: 'lobiani', ru: 'Лобиани', note: 'Лепёшка с фасолью' },
+      { ka: 'ბადრიჯანი', rom: 'badrижani', ru: 'Баклажан с орехами', note: 'Классическая закуска' },
+      { ka: 'სუპი', rom: 'supi', ru: 'Суп', note: '' },
+      { ka: 'სალათი', rom: 'salati', ru: 'Салат', note: '' },
+      { ka: 'ხორცი', rom: 'khortsi', ru: 'Мясо', note: '' },
+      { ka: 'თევზი', rom: 'tevzi', ru: 'Рыба', note: '' },
+      { ka: 'ყველი', rom: 'q\'veli', ru: 'Сыр', note: '' },
       { ka: 'ღვინო', rom: 'ghvino', ru: 'Вино', note: 'Грузия — родина вина' },
       { ka: 'წყალი', rom: 'ts\'q\'ali', ru: 'Вода', note: '' },
       { ka: 'ყავა', rom: 'q\'ava', ru: 'Кофе', note: '' },
@@ -78,8 +100,12 @@ const PHRASES = {
       { ka: 'პური', rom: 'p\'uri', ru: 'Хлеб', note: '' },
       { ka: 'ანგარიში, გთხოვთ', rom: 'angarishi, gtkhovt', ru: 'Счёт, пожалуйста', note: 'В ресторане' },
       { ka: 'გემრიელია!', rom: 'gemrielial', ru: 'Вкусно!', note: 'Хозяин будет рад!' },
-      { ka: 'მშიოდა!', rom: 'mshioda!', ru: 'Я проголодался/ась!', note: '' },
       { ka: 'გაუმარჯოს!', rom: 'gaumarjos!', ru: 'За здоровье! / Ваше здоровье!', note: 'Грузинский тост' },
+      { ka: 'ვეგეტარიანელი ვარ', rom: 'vegetarianeli var', ru: 'Я вегетарианец/ка', note: '' },
+      { ka: 'ხორცის გარეშე', rom: 'khortsis gareshe', ru: 'Без мяса', note: '' },
+      { ka: 'კინძი არ მინდა', rom: 'kindzi ar minda', ru: 'Без кинзы', note: 'Полезно если не любите кинзу' },
+      { ka: 'სასადილო', rom: 'sasadilo', ru: 'Ресторан / Столовая', note: '' },
+      { ka: 'მენიუ', rom: 'meniu', ru: 'Меню', note: '' },
     ]
   },
   navigation: {
@@ -90,13 +116,21 @@ const PHRASES = {
       { ka: 'მარცხნივ', rom: 'martskhniv', ru: 'Налево', note: '' },
       { ka: 'მარჯვნივ', rom: 'marjvniv', ru: 'Направо', note: '' },
       { ka: 'პირდაპირ', rom: 'pirdapir', ru: 'Прямо', note: '' },
+      { ka: 'აქ', rom: 'ak', ru: 'Здесь', note: '' },
+      { ka: 'იქ', rom: 'ik', ru: 'Там', note: '' },
       { ka: 'ახლოს', rom: 'akhlos', ru: 'Близко', note: '' },
       { ka: 'შორს', rom: 'shors', ru: 'Далеко', note: '' },
+      { ka: 'გაჩერება', rom: 'gachereba', ru: 'Остановка', note: '' },
       { ka: 'მეტრო', rom: 'metro', ru: 'Метро', note: '' },
       { ka: 'ავტობუსი', rom: 'avtobusi', ru: 'Автобус', note: '' },
+      { ka: 'მარშრუტკა', rom: 'marshrutka', ru: 'Маршрутка', note: 'Основной транспорт в городах' },
       { ka: 'ტაქსი', rom: 'taksi', ru: 'Такси', note: '' },
+      { ka: 'მატარებელი', rom: 'matarebeli', ru: 'Поезд', note: '' },
       { ka: 'აეროპორტი', rom: 'aerop\'orti', ru: 'Аэропорт', note: '' },
       { ka: 'სასტუმრო', rom: 'sastumro', ru: 'Гостиница / Отель', note: '' },
+      { ka: 'რამდენი ჯდება?', rom: 'ramdeni jdeba?', ru: 'Сколько стоит проезд?', note: '' },
+      { ka: 'გამიჩერეთ აქ', rom: 'gamichereth ak', ru: 'Остановите здесь', note: 'В такси/маршрутке' },
+      { ka: 'ეს სწორი გზაა?', rom: 'essts\'ori gzaa?', ru: 'Это правильная дорога?', note: '' },
     ]
   },
   shopping: {
@@ -105,11 +139,21 @@ const PHRASES = {
     items: [
       { ka: 'რამდენი ღირს?', rom: 'ramdeni ghirs?', ru: 'Сколько стоит?', note: '' },
       { ka: 'ძვირია', rom: 'dzvir\'ia', ru: 'Дорого', note: '' },
+      { ka: 'ძალიან ძვირია', rom: 'dzalian dzvir\'ia', ru: 'Очень дорого', note: '' },
       { ka: 'იაფია', rom: 'iapia', ru: 'Дёшево', note: '' },
+      { ka: 'ფასი', rom: 'p\'asi', ru: 'Цена', note: '' },
+      { ka: 'ფასდათმობა', rom: 'p\'asdathmoba', ru: 'Скидка', note: '' },
       { ka: 'მინდა...', rom: 'minda...', ru: 'Я хочу...', note: '' },
+      { ka: 'გაქვთ...?', rom: 'gakvt...?', ru: 'У вас есть...?', note: '' },
+      { ka: 'ავიღებ', rom: 'avigheb', ru: 'Я возьму это', note: '' },
       { ka: 'ბაზარი', rom: 'bazari', ru: 'Базар / Рынок', note: '' },
+      { ka: 'მაღაზია', rom: 'maghazia', ru: 'Магазин', note: '' },
       { ka: 'ფული', rom: 'p\'uli', ru: 'Деньги', note: '' },
       { ka: 'ლარი', rom: 'lari', ru: 'Лари (валюта)', note: 'Грузинская валюта' },
+      { ka: 'ხურდა', rom: 'khurda', ru: 'Сдача', note: '' },
+      { ka: 'ქვითარი', rom: 'kvitari', ru: 'Чек / Квитанция', note: '' },
+      { ka: 'ბარათი', rom: 'barati', ru: 'Карта (банковская)', note: '' },
+      { ka: 'ნაღდი ფული', rom: 'naghdi p\'uli', ru: 'Наличные', note: '' },
     ]
   },
   emergency: {
@@ -119,24 +163,90 @@ const PHRASES = {
       { ka: 'დამეხმარეთ!', rom: 'damekhmaret!', ru: 'Помогите!', note: '' },
       { ka: 'ექიმი', rom: 'ekimi', ru: 'Врач', note: '' },
       { ka: 'საავადმყოფო', rom: 'saavadmq\'opo', ru: 'Больница', note: '' },
+      { ka: 'აფთიაქი', rom: 'aptiaki', ru: 'Аптека', note: '' },
       { ka: 'პოლიცია', rom: 'p\'olitsia', ru: 'Полиция', note: '' },
       { ka: 'ცეცხლი!', rom: 'tsetskhli!', ru: 'Пожар!', note: '' },
       { ka: 'სასწრაფო დახმარება', rom: 'sasts\'rapo dakhmmareba', ru: 'Скорая помощь', note: 'Телефон: 112' },
       { ka: 'მე ვარ დაკარგული', rom: 'me var dak\'arguli', ru: 'Я потерялся/ась', note: '' },
+      { ka: 'ავადმყოფი ვარ', rom: 'avadmq\'opi var', ru: 'Я болен/больна', note: '' },
+      { ka: 'მტკივა', rom: 'mtk\'iva', ru: 'Мне больно', note: '' },
+      { ka: 'ქურდობა', rom: 'kurdoba', ru: 'Кража', note: 'Если что-то украли' },
+      { ka: 'დაიკარგა ჩემი ჩანთა', rom: 'daik\'arga chemi chanta', ru: 'Пропала моя сумка', note: '' },
+      { ka: 'მჭირდება თარჯიმანი', rom: 'mchirdeba tarjimani', ru: 'Мне нужен переводчик', note: '' },
+    ]
+  },
+  accommodation: {
+    title: 'Жильё и отель',
+    icon: '🏨',
+    items: [
+      { ka: 'ოთახი', rom: 'otakhi', ru: 'Комната / Номер', note: '' },
+      { ka: 'ოთახი ერთი ადამიანისთვის', rom: 'otakhi erti adamianistvis', ru: 'Одноместный номер', note: '' },
+      { ka: 'ოთახი ორი ადამიანისთვის', rom: 'otakhi ori adamianistvis', ru: 'Двухместный номер', note: '' },
+      { ka: 'დაჯავშნა', rom: 'dajav\'shna', ru: 'Бронирование', note: '' },
+      { ka: 'შემოწმება', rom: 'shemotsmeba', ru: 'Заезд (check-in)', note: '' },
+      { ka: 'გამოწმება', rom: 'gamotsmeba', ru: 'Выезд (check-out)', note: '' },
+      { ka: 'გასაღები', rom: 'gasaghebi', ru: 'Ключ', note: '' },
+      { ka: 'Wi-Fi პაროლი', rom: 'wi-fi p\'aroli', ru: 'Пароль от Wi-Fi', note: '' },
+      { ka: 'სარეცხი', rom: 'saretskhi', ru: 'Прачечная', note: '' },
+      { ka: 'სადილი შედის?', rom: 'sadili shedis?', ru: 'Завтрак включён?', note: '' },
+      { ka: 'სად არის ლიფტი?', rom: 'sad aris lipti?', ru: 'Где лифт?', note: '' },
+      { ka: 'ოთახი ძალიან ხმაურიანია', rom: 'otakhi dzalian khmaurianial', ru: 'Номер очень шумный', note: '' },
+    ]
+  },
+  numbers: {
+    title: 'Числа и время',
+    icon: '🔢',
+    items: [
+      { ka: 'ერთი', rom: 'erti', ru: 'Один (1)', note: '' },
+      { ka: 'ორი', rom: 'ori', ru: 'Два (2)', note: '' },
+      { ka: 'სამი', rom: 'sami', ru: 'Три (3)', note: '' },
+      { ka: 'ოთხი', rom: 'otkhi', ru: 'Четыре (4)', note: '' },
+      { ka: 'ხუთი', rom: 'khuti', ru: 'Пять (5)', note: '' },
+      { ka: 'ათი', rom: 'ati', ru: 'Десять (10)', note: '' },
+      { ka: 'ოცი', rom: 'otsi', ru: 'Двадцать (20)', note: 'Система счёта основана на 20!' },
+      { ka: 'ასი', rom: 'asi', ru: 'Сто (100)', note: '' },
+      { ka: 'ათასი', rom: 'atasi', ru: 'Тысяча (1000)', note: '' },
+      { ka: 'რომელ საათზე?', rom: 'romel saatze?', ru: 'В котором часу?', note: '' },
+      { ka: 'დღეს', rom: 'dghes', ru: 'Сегодня', note: '' },
+      { ka: 'ხვალ', rom: 'khval', ru: 'Завтра', note: '' },
+      { ka: 'გუშინ', rom: 'gushin', ru: 'Вчера', note: '' },
+      { ka: 'ახლა', rom: 'akhla', ru: 'Сейчас', note: '' },
+      { ka: 'მოგვიანებით', rom: 'mogvianebith', ru: 'Позже', note: '' },
+      { ka: 'სასწრაფოდ!', rom: 'sasts\'rapod!', ru: 'Срочно! / Быстро!', note: '' },
     ]
   },
 };
 
 const FLASHCARDS = [
+  // Место
   { ka: 'სახლი', rom: 'sakhli', ru: 'дом', category: 'Место' },
   { ka: 'ქუჩა', rom: 'kucha', ru: 'улица', category: 'Место' },
   { ka: 'ქალაქი', rom: 'kalaki', ru: 'город', category: 'Место' },
+  { ka: 'სასტუმრო', rom: 'sastumro', ru: 'отель', category: 'Место' },
+  { ka: 'სადგური', rom: 'sadguri', ru: 'станция', category: 'Место' },
+  { ka: 'მოედანი', rom: 'moedani', ru: 'площадь', category: 'Место' },
+  { ka: 'პარკი', rom: 'p\'arki', ru: 'парк', category: 'Место' },
+  { ka: 'ბანკი', rom: 'banki', ru: 'банк', category: 'Место' },
+  { ka: 'ეკლესია', rom: 'eklesia', ru: 'церковь', category: 'Место' },
+  { ka: 'ციხე', rom: 'tsikhe', ru: 'крепость', category: 'Место' },
+  { ka: 'მუზეუმი', rom: 'muzeumi', ru: 'музей', category: 'Место' },
+  { ka: 'ბაზარი', rom: 'bazari', ru: 'рынок', category: 'Место' },
+  { ka: 'მაღაზია', rom: 'maghazia', ru: 'магазин', category: 'Место' },
+  { ka: 'კაფე', rom: 'kape', ru: 'кафе', category: 'Место' },
+
+  // Природа
   { ka: 'მთა', rom: 'mtha', ru: 'гора', category: 'Природа' },
   { ka: 'ზღვა', rom: 'zghva', ru: 'море', category: 'Природа' },
   { ka: 'მდინარე', rom: 'mdinare', ru: 'река', category: 'Природа' },
   { ka: 'ტყე', rom: "t'qe", ru: 'лес', category: 'Природа' },
   { ka: 'ცა', rom: 'tsa', ru: 'небо', category: 'Природа' },
   { ka: 'მზე', rom: 'mze', ru: 'солнце', category: 'Природа' },
+  { ka: 'წვიმა', rom: "ts'vima", ru: 'дождь', category: 'Природа' },
+  { ka: 'ქარი', rom: 'kari', ru: 'ветер', category: 'Природа' },
+  { ka: 'თოვლი', rom: 'tovli', ru: 'снег', category: 'Природа' },
+  { ka: 'ტბა', rom: "t'ba", ru: 'озеро', category: 'Природа' },
+
+  // Еда
   { ka: 'წყალი', rom: "ts'q'ali", ru: 'вода', category: 'Еда' },
   { ka: 'პური', rom: "p'uri", ru: 'хлеб', category: 'Еда' },
   { ka: 'ყავა', rom: "q'ava", ru: 'кофе', category: 'Еда' },
@@ -145,14 +255,31 @@ const FLASHCARDS = [
   { ka: 'ხაჭაპური', rom: "khach'ap'uri", ru: 'хачапури', category: 'Еда' },
   { ka: 'ხილი', rom: 'khili', ru: 'фрукты', category: 'Еда' },
   { ka: 'ბოსტნეული', rom: 'bostneuli', ru: 'овощи', category: 'Еда' },
+  { ka: 'ხორცი', rom: 'khortsi', ru: 'мясо', category: 'Еда' },
+  { ka: 'თევზი', rom: 'tevzi', ru: 'рыба', category: 'Еда' },
+  { ka: 'ყველი', rom: "q'veli", ru: 'сыр', category: 'Еда' },
+  { ka: 'კვერცხი', rom: "k'vertskhi", ru: 'яйцо', category: 'Еда' },
+  { ka: 'რძე', rom: 'rdze', ru: 'молоко', category: 'Еда' },
+  { ka: 'მწვადი', rom: 'mtsvadi', ru: 'шашлык', category: 'Еда' },
+
+  // Семья
   { ka: 'დედა', rom: 'deda', ru: 'мама', category: 'Семья' },
   { ka: 'მამა', rom: 'mama', ru: 'папа', category: 'Семья' },
   { ka: 'და', rom: 'da', ru: 'сестра', category: 'Семья' },
   { ka: 'ძმა', rom: 'dzma', ru: 'брат', category: 'Семья' },
+  { ka: 'ბებია', rom: 'bebia', ru: 'бабушка', category: 'Семья' },
+  { ka: 'ბაბუა', rom: 'babua', ru: 'дедушка', category: 'Семья' },
+  { ka: 'შვილი', rom: 'shvili', ru: 'ребёнок / дитя', category: 'Семья' },
+  { ka: 'ოჯახი', rom: 'ojakhi', ru: 'семья', category: 'Семья' },
+
+  // Люди
   { ka: 'მეგობარი', rom: 'megobari', ru: 'друг', category: 'Люди' },
   { ka: 'კაცი', rom: "k'atsi", ru: 'мужчина', category: 'Люди' },
   { ka: 'ქალი', rom: 'kali', ru: 'женщина', category: 'Люди' },
   { ka: 'ბავშვი', rom: 'bavshvi', ru: 'ребёнок', category: 'Люди' },
+  { ka: 'სტუმარი', rom: 'stumari', ru: 'гость', category: 'Люди' },
+
+  // Числа
   { ka: 'ერთი', rom: 'erti', ru: 'один (1)', category: 'Числа' },
   { ka: 'ორი', rom: 'ori', ru: 'два (2)', category: 'Числа' },
   { ka: 'სამი', rom: 'sami', ru: 'три (3)', category: 'Числа' },
@@ -163,8 +290,12 @@ const FLASHCARDS = [
   { ka: 'რვა', rom: 'rva', ru: 'восемь (8)', category: 'Числа' },
   { ka: 'ცხრა', rom: 'tskhra', ru: 'девять (9)', category: 'Числа' },
   { ka: 'ათი', rom: 'ati', ru: 'десять (10)', category: 'Числа' },
-  { ka: 'კარგი', rom: "k'argi", ru: 'хороший / хорошо', category: 'Прилагат.' },
-  { ka: 'ცუდი', rom: 'tsudi', ru: 'плохой / плохо', category: 'Прилагат.' },
+  { ka: 'ოცი', rom: 'otsi', ru: 'двадцать (20)', category: 'Числа' },
+  { ka: 'ასი', rom: 'asi', ru: 'сто (100)', category: 'Числа' },
+
+  // Прилагательные
+  { ka: 'კარგი', rom: "k'argi", ru: 'хороший', category: 'Прилагат.' },
+  { ka: 'ცუდი', rom: 'tsudi', ru: 'плохой', category: 'Прилагат.' },
   { ka: 'დიდი', rom: 'didi', ru: 'большой', category: 'Прилагат.' },
   { ka: 'პატარა', rom: "p'at'ara", ru: 'маленький', category: 'Прилагат.' },
   { ka: 'ლამაზი', rom: 'lamazi', ru: 'красивый', category: 'Прилагат.' },
@@ -172,6 +303,43 @@ const FLASHCARDS = [
   { ka: 'ძველი', rom: 'dzveli', ru: 'старый', category: 'Прилагат.' },
   { ka: 'ცხელი', rom: 'tskheli', ru: 'горячий', category: 'Прилагат.' },
   { ka: 'ცივი', rom: 'tsivi', ru: 'холодный', category: 'Прилагат.' },
+  { ka: 'გემრიელი', rom: 'gemrieli', ru: 'вкусный', category: 'Прилагат.' },
+  { ka: 'ძვირი', rom: 'dzviri', ru: 'дорогой', category: 'Прилагат.' },
+  { ka: 'იაფი', rom: 'iapi', ru: 'дешёвый', category: 'Прилагат.' },
+  { ka: 'სწრაფი', rom: "sts'rapi", ru: 'быстрый', category: 'Прилагат.' },
+  { ka: 'ნელი', rom: 'neli', ru: 'медленный', category: 'Прилагат.' },
+
+  // Транспорт
+  { ka: 'მანქანა', rom: 'manqana', ru: 'машина', category: 'Транспорт' },
+  { ka: 'ავტობუსი', rom: 'avtobusi', ru: 'автобус', category: 'Транспорт' },
+  { ka: 'მეტრო', rom: 'metro', ru: 'метро', category: 'Транспорт' },
+  { ka: 'ტაქსი', rom: 'taksi', ru: 'такси', category: 'Транспорт' },
+  { ka: 'მატარებელი', rom: 'matarebeli', ru: 'поезд', category: 'Транспорт' },
+  { ka: 'თვითმფრინავი', rom: 'tvitmprinavi', ru: 'самолёт', category: 'Транспорт' },
+  { ka: 'ველოსიპედი', rom: 'velosip\'edi', ru: 'велосипед', category: 'Транспорт' },
+  { ka: 'გზა', rom: 'gza', ru: 'дорога / путь', category: 'Транспорт' },
+
+  // Время
+  { ka: 'დღე', rom: 'dghe', ru: 'день', category: 'Время' },
+  { ka: 'ღამე', rom: 'ghame', ru: 'ночь', category: 'Время' },
+  { ka: 'დილა', rom: 'dila', ru: 'утро', category: 'Время' },
+  { ka: 'საღამო', rom: 'saghamo', ru: 'вечер', category: 'Время' },
+  { ka: 'კვირა', rom: 'kvira', ru: 'неделя', category: 'Время' },
+  { ka: 'თვე', rom: 'tve', ru: 'месяц', category: 'Время' },
+  { ka: 'წელი', rom: 'tseli', ru: 'год', category: 'Время' },
+  { ka: 'ახლა', rom: 'akhla', ru: 'сейчас', category: 'Время' },
+  { ka: 'დღეს', rom: 'dghes', ru: 'сегодня', category: 'Время' },
+  { ka: 'ხვალ', rom: 'khval', ru: 'завтра', category: 'Время' },
+
+  // Цвета
+  { ka: 'წითელი', rom: "ts'iteli", ru: 'красный', category: 'Цвета' },
+  { ka: 'ლურჯი', rom: 'lurji', ru: 'синий', category: 'Цвета' },
+  { ka: 'მწვანე', rom: 'mtsvane', ru: 'зелёный', category: 'Цвета' },
+  { ka: 'შავი', rom: 'shavi', ru: 'чёрный', category: 'Цвета' },
+  { ka: 'თეთრი', rom: 'tetri', ru: 'белый', category: 'Цвета' },
+  { ka: 'ყვითელი', rom: "q'viteli", ru: 'жёлтый', category: 'Цвета' },
+  { ka: 'ნარინჯისფერი', rom: 'narinjisperi', ru: 'оранжевый', category: 'Цвета' },
+  { ka: 'ვარდისფერი', rom: 'vardisperi', ru: 'розовый', category: 'Цвета' },
 ];
 
 const TIPS = [
@@ -214,13 +382,13 @@ const TIPS = [
   {
     icon: '🚗',
     title: 'Транспорт',
-    text: 'Маршрутки (маршрутки!) — основной вид транспорта. Оплата наличными или картой Metromoney. В Тбилиси есть метро (2 линии). Такси через Bolt или Yandex Go — дёшево и удобно.',
+    text: 'Маршрутки — основной вид транспорта. Оплата наличными или картой Metromoney. В Тбилиси есть метро (2 линии). Такси через Bolt или Yandex Go — дёшево и удобно.',
     color: '#3A2A5C'
   },
   {
     icon: '🗣️',
-    title: 'Язык и реакция',
-    text: 'Любая попытка говорить по-грузински вызывает бурную радость у местных! Даже простое «გამარჯობა» (gamarjoba) и «გმადლობ» (gmadlob) растопит любое сердце. Не бойтесь ошибаться!',
+    title: 'Говорите по-грузински!',
+    text: 'Любая попытка говорить по-грузински вызывает бурную радость у местных! Даже простое «გამარჯობა» и «გმადლობ» растопит любое сердце. Не бойтесь ошибаться!',
     color: '#1A4A5C'
   },
   {
@@ -234,5 +402,35 @@ const TIPS = [
     title: 'Специи и зелень',
     text: 'Грузинская кухня использует много зелени: кинза, петрушка, эстрагон. Если не переносите кинзу — скажите «კინძი არ მინდა» (kindzi ar minda) — «кинзу не хочу».',
     color: '#2A5C2A'
+  },
+  {
+    icon: '🔢',
+    title: 'Система счёта — особенная',
+    text: 'Грузинский счёт основан на числе 20 (как французский!). 40 = «ორმოცი» (ormotsi) — «дважды двадцать». 60 = «სამოცი» (samotsi) — «трижды двадцать». Для торговли хватит 1-10 и «сколько стоит?»',
+    color: '#1A2A5C'
+  },
+  {
+    icon: '📱',
+    title: 'Связь и интернет',
+    text: 'SIM-карту (Magti, Beeline, Silknet) можно купить в аэропорту или салоне. ~5 GEL за карту + пакет данных. Wi-Fi есть почти везде. Google Maps отлично работает в Грузии.',
+    color: '#2A4A3A'
+  },
+  {
+    icon: '🏔️',
+    title: 'Регионы и диалекты',
+    text: 'В Аджарии (Батуми) слышится турецкое влияние. В горных районах (Сванетия, Кахетия) свои диалекты. Литературный грузинский понимают везде. Кахетия — главный винодельческий регион.',
+    color: '#3A4A1A'
+  },
+  {
+    icon: '🛡️',
+    title: 'Безопасность',
+    text: 'Грузия — одна из самых безопасных стран для туристов. Насильственные преступления редки. Берегите телефон и сумку в толпе на Руставели и Сухом мосту. Ночью центр Тбилиси живой и безопасный.',
+    color: '#4A2A3A'
+  },
+  {
+    icon: '🌡️',
+    title: 'Погода и одежда',
+    text: 'Тбилиси — жаркое лето (35°C+), мягкая зима. Батуми — субтропики, влажно. Горы: даже летом нужна тёплая куртка выше 2000м. Лучшее время для путешествия — май-июнь и сентябрь-октябрь.',
+    color: '#1A4A2A'
   },
 ];

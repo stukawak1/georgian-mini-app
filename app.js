@@ -104,6 +104,7 @@ function closeAudioModal(e) {
 const PHRASE_PREFIX = {
   greeting: 'g', polite: 'p', food: 'f',
   navigation: 'n', shopping: 's', emergency: 'e',
+  accommodation: 'ac', numbers: 'nm',
 };
 
 // ── STATE ──
